@@ -1,10 +1,10 @@
 <?php
 
 use App\Http\Controllers\CategoriesController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\InventoryNumberController;
 use App\Http\Controllers\ModelsController;
-use App\Http\Controllers\ComputerModelController;
 use App\Http\Controllers\NetworkController;
-use App\Http\Controllers\PrinterModelController;
 use App\Http\Controllers\StatusController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -19,3 +19,5 @@ Route::get('status', [StatusController::class, 'index']);
 Route::get('status/{id}', [StatusController::class, 'show']);
 Route::get('network', [NetworkController::class, 'index']);
 Route::get('network/{id}', [NetworkController::class, 'show']);
+Route::apiResource('comment', CommentController::class);
+Route::apiResource('inventorynumber', InventorynumberController::class);
