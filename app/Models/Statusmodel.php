@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class Statusmodel extends Model
 {
-    protected $table = 'status';
+    protected $table = 'statuses';
 }

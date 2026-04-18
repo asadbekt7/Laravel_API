@@ -1,23 +1,33 @@
 <?php
 
 use App\Http\Controllers\CategoriesController;
-use App\Http\Controllers\CommentController;
 use App\Http\Controllers\InventoryNumberController;
 use App\Http\Controllers\ModelsController;
 use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\StatusController;
+use App\Http\Controllers\UnityController;
+//use App\Http\Controllers\Api\AttachmentController;
+use App\Http\Controllers\Api\WarehouseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
-Route::get('categories', [CategoriesController::class, 'index']);
-Route::get('categories/{id}', [CategoriesController::class, 'show']);
-Route::apiResource('models', ModelsController::class);
+Route::get('category', [CategoriesController::class, 'index']);
+Route::get('category/{id}', [CategoriesController::class, 'show']);
+Route::apiResource('model', ModelsController::class);
 Route::get('status', [StatusController::class, 'index']);
 Route::get('status/{id}', [StatusController::class, 'show']);
 Route::get('network', [NetworkController::class, 'index']);
 Route::get('network/{id}', [NetworkController::class, 'show']);
-Route::apiResource('comment', CommentController::class);
 Route::apiResource('inventorynumber', InventorynumberController::class);
+Route::get('unit', [UnityController::class, 'index']);
+Route::get('unit/{id}', [UnityController::class, 'show']);
+//Route::prefix('attachments')->group(function () {
+//    Route::get('/',            [AttachmentController::class, 'index']);
+//    Route::post('/',           [AttachmentController::class, 'store']);
+//    Route::delete('/{attachment}', [AttachmentController::class, 'destroy']);
+//});
+Route::apiResource('warehouse', WarehouseController::class);
+

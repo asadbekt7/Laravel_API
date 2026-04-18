@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('inventory_number', function (Blueprint $table) {
+        Schema::create('inventorynumbers', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('inventory_number')->unique();
             $table->timestamps();
@@ -19,6 +19,6 @@ return new class extends Migration
     }
     public function down(): void
     {
-        Schema::dropIfExists('inventory_number');
+        Schema::dropIfExists('inventorynumbers');
     }
 };

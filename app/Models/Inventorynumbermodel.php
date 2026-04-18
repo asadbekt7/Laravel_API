@@ -6,6 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Inventorynumbermodel extends Model
 {
-    protected $table = 'inventory_number';
+    protected $table = 'inventorynumbers';
     protected $fillable = ['inventory_number'];
 }

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Models;
-use App\Models\Categoriesmodel;
+use App\Models\Itemmodel;
+use App\Models\Categorymodel;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -11,7 +11,7 @@ class ModelsController extends Controller
 {
     public function index()
     {
-        $models = Models::with('categories:id,name')->get();
+        $models = Itemmodel::with('category:id,name')->get();
 
         return response()->json([
             'success' => true,
@@ -20,7 +20,7 @@ class ModelsController extends Controller
     }
     public function show($id)
     {
-        $models = Models::with('categories:id,name')->find($id);
+        $models = Itemmodel::with('category:id,name')->find($id);
 
         if (!$models) {
             return response()->json([
@@ -40,7 +40,7 @@ class ModelsController extends Controller
         try {
             $request->validate([
                 'name'          => 'required|string|max:255',
-                'categories_id' => 'required|exists:categories,id',
+                'category_id' => 'required|exists:categories,id',
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -49,9 +49,9 @@ class ModelsController extends Controller
             ], 422);
         }
 
-        $models = Models::create([
+        $models = Itemmodel::create([
             'name'          => $request->name,
-            'categories_id' => $request->categories_id,
+            'category_id' => $request->category_id,
         ]);
 
         return response()->json([
@@ -62,7 +62,7 @@ class ModelsController extends Controller
     }
     public function update(Request $request, $id)
     {
-        $models = Models::find($id);
+        $models = Itemmodel::find($id);
 
         if (!$models) {
             return response()->json([
@@ -74,7 +74,7 @@ class ModelsController extends Controller
         try {
             $request->validate([
                 'name'          => 'sometimes|string|max:255',
-                'categories_id' => 'sometimes|exists:categories,id',
+                'category_id' => 'sometimes|exists:categories,id',
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -93,7 +93,7 @@ class ModelsController extends Controller
     }
     public function destroy($id)
     {
-        $models = Models::find($id);
+        $models = Itemmodel::find($id);
 
         if (!$models) {
             return response()->json([

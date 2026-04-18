@@ -2,31 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Categorymodel;
+use App\Models\Unitmodel;
 use Illuminate\Http\Request;
 
-class CategoriesController extends Controller
+class UnityController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
-        $categories = Categorymodel::select ('id', 'name')->get();
+        $unity = Unitmodel::all();
         return response()->json([
             'success' => true,
-            'data' => $categories
+            'data' => $unity
         ]);
     }
     public function show($id)
     {
-        $categories = Categorymodel::find($id);
-        if (!$categories) {
+        $unity = Unitmodel::find($id);
+        if (!$unity) {
             return response()->json([
                 'success' => false,
-                'message' => 'Sorry, Category with id ' . $id . ' cannot be found'
-            ], 404);
+                'message' => 'Sorry, unity with id ' . $id . ' cannot be found'
+            ]);
         }
         return response()->json([
             'success' => true,
-            'data' => $categories
+            'data' => $unity
         ]);
     }
 }

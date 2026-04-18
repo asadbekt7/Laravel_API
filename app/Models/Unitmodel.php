@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Networkmodel extends Model
+class Unitmodel extends Model
 {
-    protected $table = 'networks';
+    protected $table = 'units';
 }
