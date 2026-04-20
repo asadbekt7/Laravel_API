@@ -83,7 +83,7 @@ class ModelsController extends Controller
             ], 422);
         }
 
-        $models->update($request->only(['name', 'categories_id']));
+        $models->update($request->only(['name', 'category_id']));
 
         return response()->json([
             'success' => true,
