@@ -8,6 +8,7 @@ use App\Http\Controllers\StatusController;
 use App\Http\Controllers\UnityController;
 //use App\Http\Controllers\Api\AttachmentController;
 use App\Http\Controllers\Api\WarehouseController;
+use App\Http\Controllers\Api\ComputerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -30,4 +31,8 @@ Route::get('unit/{id}', [UnityController::class, 'show']);
 //    Route::delete('/{attachment}', [AttachmentController::class, 'destroy']);
 //});
 Route::apiResource('warehouse', WarehouseController::class);
+Route::post('computers/transfer', [ComputerController::class, 'transfer'])
+    ->name('computers.transfer');
+
+Route::apiResource('computers', ComputerController::class);
 
