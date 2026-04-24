@@ -17,7 +17,6 @@ class WarehouseRepository implements WarehouseRepositoryInterface
             throw WarehouseNotFoundException::withId($id);
         }
     }
-
     public function delete(Warehousemodel $warehouse): bool
     {
         return (bool) $warehouse->delete();
