@@ -1,0 +1,41 @@
+[33mcommit 8676ed00e2b1015a710a9e1c50a2b1e0a47d96a4[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: asadbekt7 <asadbek@uwed.uz>
+Date:   Wed Apr 29 16:53:52 2026 +0500
+
+    exception
+
+[33mcommit b8d8d762eb879a977d30b5f194dfa102139fb69d[m
+Author: asadbekt7 <asadbek@uwed.uz>
+Date:   Fri Apr 24 10:40:24 2026 +0500
+
+    code update
+
+[33mcommit ef8db5504fd797a540c3496cf91a507c0c2bfdd9[m
+Author: asadbekt7 <asadbek@uwed.uz>
+Date:   Thu Apr 23 08:51:54 2026 +0500
+
+    computers -api
+
+[33mcommit 0bc1ae60f85e4704c1cf87d1a7040a8518020d8d[m
+Author: asadbekt7 <asadbek@uwed.uz>
+Date:   Mon Apr 20 20:14:40 2026 +0500
+
+    warehouse
+
+[33mcommit a205b2cfeaa15fa07d3857c15a001624458f4e08[m
+Author: asadbekt7 <asadbek@uwed.uz>
+Date:   Sat Apr 18 13:19:42 2026 +0500
+
+    warehouse -api
+
+[33mcommit 053467d9c309be7650e11d5c4257acc0c430b78f[m
+Author: asadbekt7 <asadbek@uwed.uz>
+Date:   Thu Apr 16 10:33:31 2026 +0500
+
+    comment and inventory number -api
+
+[33mcommit aa2923ea9402f325876a1e6a24104afea1115434[m
+Author: asadbekt7 <asadbek@uwed.uz>
+Date:   Wed Apr 15 17:46:51 2026 +0500
+
+     categories,model,status,network - API

@@ -9,6 +9,12 @@ use App\Http\Controllers\UnityController;
 //use App\Http\Controllers\Api\AttachmentController;
 use App\Http\Controllers\Api\WarehouseController;
 use App\Http\Controllers\Api\ComputerController;
+use App\Http\Controllers\Api\DeviceController;
+use App\Http\Controllers\Api\MonitorController;
+use App\Http\Controllers\Api\NetworkDeviceController;
+use App\Http\Controllers\Api\PrinterController;
+use App\Http\Controllers\Api\TelephoneController;
+use App\Http\Controllers\Api\TouchpanelController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -35,4 +41,30 @@ Route::post('computers/transfer', [ComputerController::class, 'transfer'])
     ->name('computers.transfer');
 
 Route::apiResource('computers', ComputerController::class);
+Route::post('devices/transfer', [DeviceController::class, 'transfer'])
+    ->name('devices.transfer');
+Route::apiResource('devices', DeviceController::class);
+// Monitors
+Route::post('monitors/transfer', [MonitorController::class, 'transfer'])
+    ->name('monitors.transfer');
+Route::apiResource('monitors', MonitorController::class);
 
+// Network Devices
+Route::post('network-devices/transfer', [NetworkDeviceController::class, 'transfer'])
+    ->name('network-devices.transfer');
+Route::apiResource('network-devices', NetworkDeviceController::class);
+
+// Printers
+Route::post('printers/transfer', [PrinterController::class, 'transfer'])
+    ->name('printers.transfer');
+Route::apiResource('printers', PrinterController::class);
+
+// Telephones
+Route::post('telephones/transfer', [TelephoneController::class, 'transfer'])
+    ->name('telephones.transfer');
+Route::apiResource('telephones', TelephoneController::class);
+
+// Touchpanels
+Route::post('touchpanels/transfer', [TouchpanelController::class, 'transfer'])
+    ->name('touchpanels.transfer');
+Route::apiResource('touchpanels', TouchpanelController::class);
