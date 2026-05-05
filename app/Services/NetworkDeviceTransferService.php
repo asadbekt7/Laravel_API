@@ -6,6 +6,7 @@ use App\Exceptions\RoomApiException;
 use App\Exceptions\TransferFailedException;
 use App\Exceptions\WarehouseNotFoundException;
 use App\Models\NetworkDevicemodel;
+use App\Models\Categorymodel;
 use App\Repositories\Contracts\NetworkDeviceRepositoryInterface;
 use App\Repositories\Contracts\InventoryNumberRepositoryInterface;
 use App\Repositories\Contracts\WarehouseRepositoryInterface;
@@ -26,6 +27,17 @@ class NetworkDeviceTransferService implements NetworkDeviceTransferServiceInterf
     public function transfer(int $warehouseId, int $inventoryNumber, string $roomName): NetworkDevicemodel
     {
         $warehouse = $this->warehouseRepository->findOrFail($warehouseId);
+        $networkDeviceCategory = Categorymodel::where('name', 'Network Device')->first();
+
+        if (!$networkDeviceCategory) {
+            throw new \RuntimeException("Bazada 'Network Device' kategoriyasi topilmadi.");
+        }
+
+        if ($warehouse->category_id !== $networkDeviceCategory->id) {
+            throw new WarehouseNotFoundException(
+                "Bu warehouse 'Network Device' kategoriyasiga tegishli emas."
+            );
+        }
         $roomData  = $this->roomService->getRoomData($roomName);
 
         try {

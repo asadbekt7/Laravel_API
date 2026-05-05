@@ -6,6 +6,7 @@ use App\Exceptions\RoomApiException;
 use App\Exceptions\TransferFailedException;
 use App\Exceptions\WarehouseNotFoundException;
 use App\Models\Printermodel;
+use App\Models\Categorymodel;
 use App\Repositories\Contracts\PrinterRepositoryInterface;
 use App\Repositories\Contracts\InventoryNumberRepositoryInterface;
 use App\Repositories\Contracts\WarehouseRepositoryInterface;
@@ -26,6 +27,17 @@ class PrinterTransferService implements PrinterTransferServiceInterface
     public function transfer(int $warehouseId, int $inventoryNumber, string $roomName): Printermodel
     {
         $warehouse = $this->warehouseRepository->findOrFail($warehouseId);
+        $printerCategory = Categorymodel::where('name', 'Printer')->first();
+
+        if (!$printerCategory) {
+            throw new \RuntimeException("Bazada 'Printer' kategoriyasi topilmadi.");
+        }
+
+        if ($warehouse->category_id !== $printerCategory->id) {
+            throw new WarehouseNotFoundException(
+                "Bu warehouse 'Printer' kategoriyasiga tegishli emas."
+            );
+        }
         $roomData  = $this->roomService->getRoomData($roomName);
 
         try {
