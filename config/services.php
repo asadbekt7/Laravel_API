@@ -34,5 +34,10 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'staff_api' => [
+        'base_url' => env('STAFF_API_URL',),
+        'api_key'  => env('STAFF_API_KEY'),
+        'timeout'  => env('STAFF_API_TIMEOUT', 30),
+    ],
 
 ];

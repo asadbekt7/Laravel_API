@@ -15,6 +15,8 @@ use App\Http\Controllers\Api\NetworkDeviceController;
 use App\Http\Controllers\Api\PrinterController;
 use App\Http\Controllers\Api\TelephoneController;
 use App\Http\Controllers\Api\TouchpanelController;
+use App\Http\Controllers\StaffController;
+use App\Http\Controllers\Api\InventoryImportController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -68,3 +70,6 @@ Route::apiResource('telephones', TelephoneController::class);
 Route::post('touchpanels/transfer', [TouchpanelController::class, 'transfer'])
     ->name('touchpanels.transfer');
 Route::apiResource('touchpanels', TouchpanelController::class);
+Route::get('staff', [StaffController::class, 'index']);
+Route::post('/inventory/import', InventoryImportController::class)
+    ->name('inventory.import');
