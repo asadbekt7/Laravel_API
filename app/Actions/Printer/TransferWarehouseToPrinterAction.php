@@ -2,7 +2,7 @@
 // App/Actions/Printer/TransferWarehouseToPrinterAction.php
 namespace App\Actions\Printer;
 
-use App\Models\Warehousemodel;
+use App\Models\WarehouseModel;
 use App\Models\Printermodel;
 use App\Models\Inventorynumbermodel;
 use App\Services\External\RoomService;
@@ -31,7 +31,7 @@ class TransferWarehouseToPrinterAction
                 throw new WarehouseTransferException("Bu inventory raqam allaqachon mavjud.");
             }
             $inventoryRecord = Inventorynumbermodel::create(['inventory_number' => $inventoryNumber]);
-            $warehouseItems = Warehousemodel::lockForUpdate()->findMany($warehouseIds);
+            $warehouseItems = WarehouseModel::lockForUpdate()->findMany($warehouseIds);
             $missingIds = array_diff($warehouseIds, $warehouseItems->pluck('id')->toArray());
             if (!empty($missingIds)) {
                 throw new WarehouseTransferException('Topilmadi: ' . implode(', ', $missingIds));

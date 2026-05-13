@@ -15,6 +15,8 @@ return new class extends Migration
             $table->foreignId('model_id')->constrained('models');
             $table->foreignId('unit_id')->constrained('units');
             $table->unsignedInteger('quantity');
+            $table->foreignId('staff_id')->nullable();
+            $table->decimal('product_price',12,2);
             $table->text('description');
             $table->timestamps();
         });

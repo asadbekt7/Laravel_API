@@ -11,7 +11,7 @@ return new class extends Migration
     {
         Schema::create('computers', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->text('name');
             $table->foreignId('category_id')->constrained('categories')->restrictOnDelete();
             $table->foreignId('model_id')->constrained('models')->restrictOnDelete();
             $table->foreignId('unit_id')->constrained('units')->restrictOnDelete();

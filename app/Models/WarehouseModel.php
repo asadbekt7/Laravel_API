@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Warehousemodel extends Model
+class WarehouseModel extends Model
 {
     protected $table = 'warehouse';
     protected $fillable = [
@@ -14,6 +14,8 @@ class Warehousemodel extends Model
         'model_id',
         'unit_id',
         'quantity',
+        'staff_id',
+        'product_price',
         'description'
     ];
     public function category(){

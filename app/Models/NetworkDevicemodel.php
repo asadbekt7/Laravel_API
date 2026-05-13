@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class NetworkDevicemodel extends Model
 {
     use HasFactory;
-    protected $table = 'network_devices';
+    protected $table = 'networkdevices';
 
     protected $fillable = [
         'name', 'category_id', 'model_id', 'unit_id',

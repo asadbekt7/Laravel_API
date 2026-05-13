@@ -3,7 +3,7 @@
 
 namespace App\Services;
 
-use App\Models\Warehousemodel;
+use App\Models\WarehouseModel;
 use Illuminate\Support\Facades\DB;
 
 class WarehouseService
@@ -14,7 +14,7 @@ class WarehouseService
 
         DB::transaction(function () use ($data, &$records) {
             for ($i = 1; $i <= $data['quantity']; $i++) {
-                $record = Warehousemodel::create([
+                $record = WarehouseModel::create([
                     'name'          => $data['name'] . '-' . $i,
                     'category_id' => $data['category_id'],
                     'model_id'     => $data['model_id'],
@@ -32,19 +32,19 @@ class WarehouseService
 
     public function getAll(int $perPage = 15)
     {
-        return Warehousemodel::with(['category', 'model', 'unit'])
+        return WarehouseModel::with(['category', 'model', 'unit'])
             ->latest()
             ->paginate($perPage);
     }
 
-    public function findById(int $id): Warehousemodel
+    public function findById(int $id): WarehouseModel
     {
-        return Warehousemodel::with(['category', 'model', 'unit'])
+        return WarehouseModel::with(['category', 'model', 'unit'])
             ->findOrFail($id);
     }
 
     public function delete(int $id): bool
     {
-        return Warehousemodel::findOrFail($id)->delete();
+        return WarehouseModel::findOrFail($id)->delete();
     }
 }
