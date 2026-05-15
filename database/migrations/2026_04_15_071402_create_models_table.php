@@ -6,15 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('models', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('category_id')->onDelete('cascade');
+            $table->foreignId('category_id')->constrained('categories')->restrictOnDelete();
             $table->timestamps();
         });
     }

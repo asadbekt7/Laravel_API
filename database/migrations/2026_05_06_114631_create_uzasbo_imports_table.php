@@ -29,6 +29,7 @@ return new class extends Migration
             $table->decimal('closing_summ', 20, 2)->nullable()->comment('Сумма на конец периода — основная сумма');
             $table->string('import_type')->nullable();
             $table->string('row_number')->nullable()->comment('Original row number in file');
+            $table->string('status')->nullable();
             $table->timestamps();
             $table->index('account_number');
             $table->index('department');

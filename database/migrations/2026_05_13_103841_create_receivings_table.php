@@ -10,10 +10,10 @@ return new class extends Migration
     {
         Schema::create('receivings', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('document_type_id');
+            $table->unsignedBigInteger('document_type_id')->constrained('document_types')->restrictOnDelete();
             $table->string('document_number')->unique();
             $table->date('document_date');
-            $table->string('supplier_name');
+            $table->text('supplier_name');
             $table->date('delivery_date');
             $table->string('batch_number');
             $table->decimal('batch_cost', 12, 2)->default(0.00);

@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 class ReceivingModel extends Model
 {
-    protected $table = 'receiving';
+    use HasFactory, SoftDeletes;
+    protected $table = 'receivings';
     protected $fillable = [
         'document_type_id',
         'document_number',
@@ -26,6 +28,10 @@ class ReceivingModel extends Model
         'delivery_date'    => 'date:Y-m-d',
         'batch_cost'       => 'decimal:2',
     ];
+    public function documentType(): BelongsTo
+    {
+        return $this->belongsTo(DocumentTypeModel::class);
+    }
     public function warehouse(): HasMany
     {
         return $this->hasMany(WarehouseModel::class, 'receiving_id');

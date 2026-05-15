@@ -10,12 +10,17 @@ return new class extends Migration
     {
         Schema::create('warehouse', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('receiving_id')->constrained('receivings')->restrictOnDelete();
             $table->string('name');
-            $table->foreignId('category_id')->constrained('categories');
-            $table->foreignId('model_id')->constrained('models');
-            $table->foreignId('unit_id')->constrained('units');
+            $table->foreignId('type_id')->constrained('types')->restrictOnDelete();
+            $table->foreignId('category_id')->constrained('categories')->restrictOnDelete();
+            $table->foreignId('model_id')->constrained('models')->restrictOnDelete();
             $table->unsignedInteger('quantity');
-            $table->foreignId('staff_id')->nullable();
+            $table->foreignId('unit_id')->constrained('units')->restrictOnDelete();
+            $table->string('condition')->default('new');
+            $table->foreignId('location_id')->constrained('locations')->restrictOnDelete();
+            $table->unsignedInteger('staff_id');
+            $table->decimal('price_per_unit', 12, 2)->default(0.00);
             $table->decimal('product_price',12,2);
             $table->text('description');
             $table->timestamps();
