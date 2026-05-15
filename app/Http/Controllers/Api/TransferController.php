@@ -18,8 +18,6 @@ class TransferController extends Controller
      */
     public function store(TransferRequest $request): JsonResponse
     {
-        // validated() nested array da ba'zan ma'lumot tushurib qolishi mumkin
-        // shuning uchun input() ishlatamiz, validatsiya allaqachon o'tdi
         $result = $this->transferService->transferBatch(
             $request->input('items')
         );
