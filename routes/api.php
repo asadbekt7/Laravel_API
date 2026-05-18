@@ -10,12 +10,6 @@ use App\Http\Controllers\UnityController;
 //use App\Http\Controllers\Api\AttachmentController;
 use App\Http\Controllers\Api\WarehouseController;
 use App\Http\Controllers\Api\ComputerController;
-use App\Http\Controllers\Api\DeviceController;
-use App\Http\Controllers\Api\MonitorController;
-use App\Http\Controllers\Api\NetworkDeviceController;
-use App\Http\Controllers\Api\PrinterController;
-use App\Http\Controllers\Api\TelephoneController;
-use App\Http\Controllers\Api\TouchpanelController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\Api\InventoryImportController;
 use App\Http\Controllers\Api\UzasboImportController;
@@ -46,38 +40,14 @@ Route::post('computers/transfer', [ComputerController::class, 'transfer'])
     ->name('computers.transfer');
 
 Route::apiResource('computers', ComputerController::class);
-Route::post('devices/transfer', [DeviceController::class, 'transfer'])
-    ->name('devices.transfer');
-Route::apiResource('devices', DeviceController::class);
-// Monitors
-Route::post('monitors/transfer', [MonitorController::class, 'transfer'])
-    ->name('monitors.transfer');
-Route::apiResource('monitors', MonitorController::class);
-
-// Network Devices
-Route::post('network-devices/transfer', [NetworkDeviceController::class, 'transfer'])
-    ->name('network-devices.transfer');
-Route::apiResource('network-devices', NetworkDeviceController::class);
-
-// Printers
-Route::post('printers/transfer', [PrinterController::class, 'transfer'])
-    ->name('printers.transfer');
-Route::apiResource('printers', PrinterController::class);
-
-// Telephones
-Route::post('telephones/transfer', [TelephoneController::class, 'transfer'])
-    ->name('telephones.transfer');
-Route::apiResource('telephones', TelephoneController::class);
-
-// Touchpanels
-Route::post('touchpanels/transfer', [TouchpanelController::class, 'transfer'])
-    ->name('touchpanels.transfer');
-Route::apiResource('touchpanels', TouchpanelController::class);
 Route::get('staff', [StaffController::class, 'index']);
 Route::post('/inventory/import', InventoryImportController::class)
     ->name('inventory.import');
-Route::get('/uzasbo-import',      [UzasboImportController::class, 'index']);
-Route::get('/uzasbo-import/{id}', [UzasboImportController::class, 'show']);
+Route::prefix('uzasbo-imports')->controller(UzasboImportController::class)->group(function () {
+    Route::get('/',          'index');
+    Route::get('/{id}',      'show');
+    Route::post('/transfer', 'transfer');
+});
 Route::get('/document-types', [DocumentTypeController::class, 'index']);
 Route::get('/document-types/{id}', [DocumentTypeController::class, 'show']);
 Route::prefix('transfers')->group(function () {

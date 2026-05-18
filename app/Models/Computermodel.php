@@ -33,17 +33,17 @@ class Computermodel extends Model
     ];
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Categorymodel::class);
+        return $this->belongsTo(CategoryModel::class);
     }
 
     public function model(): BelongsTo
     {
-        return $this->belongsTo(Itemmodel::class, 'model_id');
+        return $this->belongsTo(GoodModel::class, 'model_id');
     }
 
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(Unitmodel::class);
+        return $this->belongsTo(UnitModel::class);
     }
 
     public function inventoryNumber(): BelongsTo

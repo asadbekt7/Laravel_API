@@ -6,7 +6,7 @@ use App\Exceptions\RoomApiException;
 use App\Exceptions\TransferFailedException;
 use App\Exceptions\WarehouseNotFoundException;
 use App\Models\Monitormodel;
-use App\Models\Categorymodel;
+use App\Models\CategoryModel;
 use App\Repositories\Contracts\MonitorRepositoryInterface;
 use App\Repositories\Contracts\InventoryNumberRepositoryInterface;
 use App\Repositories\Contracts\WarehouseRepositoryInterface;
@@ -27,7 +27,7 @@ class MonitorTransferService implements MonitorTransferServiceInterface
     public function transfer(int $warehouseId, int $inventoryNumber, string $roomName): Monitormodel
     {
         $warehouse = $this->warehouseRepository->findOrFail($warehouseId);
-        $monitorCategory = Categorymodel::where('name', 'Device')->first();  // 2 — kategoriya topish
+        $monitorCategory = CategoryModel::where('name', 'Device')->first();  // 2 — kategoriya topish
 
         if (!$monitorCategory) {
             throw new \RuntimeException("Bazada 'Device' kategoriyasi topilmadi.");

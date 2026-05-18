@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class DocumentTypeModel extends Model
+class ItemsModel extends Model
 {
-    protected $table = 'document_types';
+    protected $table = 'items';
     protected $fillable = [
         'name',
     ];
 }
+// ItemsModel = umumiy narsalalrni modeliga

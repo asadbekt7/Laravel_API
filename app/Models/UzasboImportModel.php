@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -31,6 +32,7 @@ class UzasboImportModel extends Model
         'closing_summ',
         'import_type',
         'row_number',
+        'status',
     ];
 
     protected $casts = [
@@ -43,4 +45,15 @@ class UzasboImportModel extends Model
         'closing_quantity' => 'decimal:4',
         'closing_summ'     => 'decimal:2',
     ];
+    public function scopeNotTransferred(Builder $query): void
+    {
+        $query->where(function (Builder $q) {
+            $q->whereNull('status')->orWhere('status', '!=', 'TRANSFERED');
+        });
+    }
+
+    public function item(): HasOne
+    {
+        return $this->hasOne(Item::class, 'uzasbo_import_id');
+    }
 }

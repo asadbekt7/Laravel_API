@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Itemmodel;
-use App\Models\Categorymodel;
+use App\Models\GoodModel;
+use App\Models\CategoryModel;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -11,7 +11,7 @@ class ModelsController extends Controller
 {
     public function index()
     {
-        $models = Itemmodel::with('category:id,name')->get();
+        $models = GoodModel::with('category:id,name')->get();
 
         return response()->json([
             'success' => true,
@@ -20,7 +20,7 @@ class ModelsController extends Controller
     }
     public function show($id)
     {
-        $models = Itemmodel::with('category:id,name')->find($id);
+        $models = GoodModel::with('category:id,name')->find($id);
 
         if (!$models) {
             return response()->json([
@@ -49,7 +49,7 @@ class ModelsController extends Controller
             ], 422);
         }
 
-        $models = Itemmodel::create([
+        $models = GoodModel::create([
             'name'          => $request->name,
             'category_id' => $request->category_id,
         ]);
@@ -62,7 +62,7 @@ class ModelsController extends Controller
     }
     public function update(Request $request, $id)
     {
-        $models = Itemmodel::find($id);
+        $models = GoodModel::find($id);
 
         if (!$models) {
             return response()->json([
@@ -93,7 +93,7 @@ class ModelsController extends Controller
     }
     public function destroy($id)
     {
-        $models = Itemmodel::find($id);
+        $models = GoodModel::find($id);
 
         if (!$models) {
             return response()->json([

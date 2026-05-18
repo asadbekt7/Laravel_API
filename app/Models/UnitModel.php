@@ -4,7 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Unitmodel extends Model
+class UnitModel extends Model
 {
     protected $table = 'units';
+    protected $fillable = [
+        'name',
+    ];
 }

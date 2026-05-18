@@ -6,7 +6,7 @@ use App\Exceptions\RoomApiException;
 use App\Exceptions\TransferFailedException;
 use App\Exceptions\WarehouseNotFoundException;
 use App\Models\Touchpanelmodel;
-use App\Models\Categorymodel;
+use App\Models\CategoryModel;
 use App\Repositories\Contracts\TouchpanelRepositoryInterface;
 use App\Repositories\Contracts\InventoryNumberRepositoryInterface;
 use App\Repositories\Contracts\WarehouseRepositoryInterface;
@@ -27,7 +27,7 @@ class TouchpanelTransferService implements TouchpanelTransferServiceInterface
     public function transfer(int $warehouseId, int $inventoryNumber, string $roomName): Touchpanelmodel
     {
         $warehouse = $this->warehouseRepository->findOrFail($warehouseId);
-        $touchpanelCategory = Categorymodel::where('name', 'Touchpanel')->first();
+        $touchpanelCategory = CategoryModel::where('name', 'Touchpanel')->first();
 
         if (!$touchpanelCategory) {
             throw new \RuntimeException("Bazada 'Touchpanel' kategoriyasi topilmadi.");

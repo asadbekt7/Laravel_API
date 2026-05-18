@@ -6,7 +6,7 @@ use App\Exceptions\RoomApiException;
 use App\Exceptions\TransferFailedException;
 use App\Exceptions\WarehouseNotFoundException;
 use App\Models\Computermodel;
-use App\Models\Categorymodel;
+use App\Models\CategoryModel;
 use App\Repositories\Contracts\ComputerRepositoryInterface;
 use App\Repositories\Contracts\InventoryNumberRepositoryInterface;
 use App\Repositories\Contracts\WarehouseRepositoryInterface;
@@ -30,7 +30,7 @@ class ComputerTransferService implements ComputerTransferServiceInterface
         $warehouse = $this->warehouseRepository->findOrFail($warehouseId);
 
         // STEP 2 — Bazadan "Computer" kategoriyasini topish
-        $computerCategory = Categorymodel::where('name', 'Computer')->first();
+        $computerCategory = CategoryModel::where('name', 'Computer')->first();
 
         if (!$computerCategory) {
             throw new \RuntimeException("Bazada 'Computer' kategoriyasi topilmadi.");

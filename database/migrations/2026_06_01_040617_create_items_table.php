@@ -11,14 +11,14 @@ return new class extends Migration
         Schema::create('items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('uzasbo_import_id')->nullable();
+            $table->foreignId('receiving_id')->nullable()->constrained('receivings');
             $table->text('name');
-            $table->foreignId('type_id')->constrained('tapes')->restrictOnDelete();
+            $table->foreignId('type_id')->constrained('types')->restrictOnDelete();
             $table->foreignId('category_id')->constrained('categories')->restrictOnDelete();
             $table->foreignId('model_id')->constrained('models')->restrictOnDelete();
             $table->unsignedInteger('quantity')->default(1);
             $table->foreignId('unit_id')->constrained('units')->restrictOnDelete();
             $table->string('inventory_number')->unique();
-            $table->string('serial_number')->nullable()->unique();
             $table->string('room_name')->nullable();
             $table->string('building')->nullable();
             $table->string('room_number')->nullable();

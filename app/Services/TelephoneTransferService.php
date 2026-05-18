@@ -6,7 +6,7 @@ use App\Exceptions\RoomApiException;
 use App\Exceptions\TransferFailedException;
 use App\Exceptions\WarehouseNotFoundException;
 use App\Models\Telephonemodel;
-use App\Models\Categorymodel;
+use App\Models\CategoryModel;
 use App\Repositories\Contracts\TelephoneRepositoryInterface;
 use App\Repositories\Contracts\InventoryNumberRepositoryInterface;
 use App\Repositories\Contracts\WarehouseRepositoryInterface;
@@ -27,7 +27,7 @@ class TelephoneTransferService implements TelephoneTransferServiceInterface
     public function transfer(int $warehouseId, int $inventoryNumber, string $roomName): Telephonemodel
     {
         $warehouse = $this->warehouseRepository->findOrFail($warehouseId);
-        $telephoneCategory = Categorymodel::where('name', 'Telephone')->first();
+        $telephoneCategory = CategoryModel::where('name', 'Telephone')->first();
 
         if (!$telephoneCategory) {
             throw new \RuntimeException("Bazada 'Telephone' kategoriyasi topilmadi.");

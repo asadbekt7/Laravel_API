@@ -37,7 +37,6 @@ return new class extends Migration
             $table->index('full_name');
         });
     }
-
     public function down(): void
     {
         Schema::dropIfExists('uzasbo_imports');

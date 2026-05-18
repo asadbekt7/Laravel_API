@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Categorymodel;
+use App\Models\CategoryModel;
 use Illuminate\Http\Request;
 
 class CategoriesController extends Controller
 {
     public function index()
     {
-        $categories = Categorymodel::select ('id', 'name')->get();
+        $categories = CategoryModel::select ('id', 'name')->get();
         return response()->json([
             'success' => true,
             'data' => $categories
@@ -17,7 +17,7 @@ class CategoriesController extends Controller
     }
     public function show($id)
     {
-        $categories = Categorymodel::find($id);
+        $categories = CategoryModel::find($id);
         if (!$categories) {
             return response()->json([
                 'success' => false,

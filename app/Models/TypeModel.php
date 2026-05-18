@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class DocumentTypeModel extends Model
+class TypeModel extends Model
 {
-    protected $table = 'document_types';
+    protected $table = 'types';
     protected $fillable = [
         'name',
     ];

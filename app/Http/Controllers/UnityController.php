@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Unitmodel;
+use App\Models\UnitModel;
 use Illuminate\Http\Request;
 
 class UnityController extends Controller
@@ -12,7 +12,7 @@ class UnityController extends Controller
      */
     public function index()
     {
-        $unity = Unitmodel::all();
+        $unity = UnitModel::all();
         return response()->json([
             'success' => true,
             'data' => $unity
@@ -20,7 +20,7 @@ class UnityController extends Controller
     }
     public function show($id)
     {
-        $unity = Unitmodel::find($id);
+        $unity = UnitModel::find($id);
         if (!$unity) {
             return response()->json([
                 'success' => false,

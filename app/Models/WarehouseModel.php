@@ -19,16 +19,16 @@ class WarehouseModel extends Model
         'description'
     ];
     public function category(){
-        return $this->belongsTo(Categorymodel::class,'category_id','id');
+        return $this->belongsTo(CategoryModel::class,'category_id','id');
     }
     public function model()
     {
-        return $this->belongsTo(Itemmodel::class, 'model_id', 'id');
+        return $this->belongsTo(GoodModel::class, 'model_id', 'id');
     }
 
     public function unit()
     {
-        return $this->belongsTo(Unitmodel::class, 'unit_id', 'id');
+        return $this->belongsTo(UnitModel::class, 'unit_id', 'id');
     }
 
 }

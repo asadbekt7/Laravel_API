@@ -6,7 +6,7 @@ use App\Exceptions\RoomApiException;
 use App\Exceptions\TransferFailedException;
 use App\Exceptions\WarehouseNotFoundException;
 use App\Models\Devicemodel;
-use App\Models\Categorymodel;
+use App\Models\CategoryModel;
 use App\Repositories\Contracts\DeviceRepositoryInterface;
 use App\Repositories\Contracts\InventoryNumberRepositoryInterface;
 use App\Repositories\Contracts\WarehouseRepositoryInterface;
@@ -27,7 +27,7 @@ class DeviceTransferService implements DeviceTransferServiceInterface
     public function transfer(int $warehouseId, int $inventoryNumber, string $roomName): Devicemodel
     {
         $warehouse = $this->warehouseRepository->findOrFail($warehouseId);
-        $deviceCategory = Categorymodel::where('name', 'Device')->first();
+        $deviceCategory = CategoryModel::where('name', 'Device')->first();
 
         if (!$deviceCategory) {
             throw new \RuntimeException("Bazada 'Device' kategoriyasi topilmadi.");

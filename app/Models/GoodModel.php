@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Itemmodel extends Model
+class GoodModel extends Model
 {
     protected $table = 'models';
     protected $fillable =
@@ -13,6 +13,7 @@ class Itemmodel extends Model
             'category_id'
         ];
     public function category(){
-        return $this->belongsTo(Categorymodel::class, 'category_id');
+        return $this->belongsTo(CategoryModel::class, 'category_id');
     }
 }
+// itemModel = Model ga
