@@ -15,6 +15,7 @@ return new class extends Migration
             $table->foreignId('type_id')->constrained('types')->restrictOnDelete();
             $table->foreignId('category_id')->constrained('categories')->restrictOnDelete();
             $table->foreignId('model_id')->constrained('models')->restrictOnDelete();
+            $table->foreignId('receiving_supplier_name')->constrained('receivings')->restrictOnDelete();
             $table->unsignedInteger('quantity');
             $table->foreignId('unit_id')->constrained('units')->restrictOnDelete();
             $table->string('condition')->default('new');

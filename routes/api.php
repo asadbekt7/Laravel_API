@@ -8,16 +8,16 @@ use App\Http\Controllers\LocationController;
 use App\Http\Controllers\DocumentTypeController;
 use App\Http\Controllers\Api\ReceivingController;
 use App\Http\Controllers\Api\InventoryImportController;
-
-
-
-
-//use App\Http\Controllers\Api\AttachmentController;
-use App\Http\Controllers\Api\WarehouseController;
-use App\Http\Controllers\Api\ComputerController;
-use App\Http\Controllers\StaffController;
-
 use App\Http\Controllers\Api\UzasboImportController;
+use App\Http\Controllers\Api\ItemsController;
+
+
+
+use App\Http\Controllers\Api\WarehouseController;
+
+
+
+
 use App\Http\Controllers\Api\TransferController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -48,12 +48,14 @@ Route::prefix('uzasbo-imports')->group(function () {
     Route::get('/{id}',       [UzasboImportController::class, 'show']);
     Route::post('/transfer',  [UzasboImportController::class, 'transfer']);
 });
-
-
+//Uzasbo-Import transfer GET
+Route::prefix('items')->group(function () {
+    Route::get('/',    [ItemsController::class, 'index']);
+    Route::get('/{id}', [ItemsController::class, 'show']);
+});
+//Warehouse
 Route::apiResource('warehouse', WarehouseController::class);
-
-
-
+//Transfer
 Route::prefix('transfers')->group(function () {
     Route::post('/', [TransferController::class, 'store']);
 });
