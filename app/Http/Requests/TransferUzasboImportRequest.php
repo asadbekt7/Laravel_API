@@ -20,27 +20,32 @@ class TransferUzasboImportRequest extends FormRequest
             'category_id'  => ['required', 'integer', 'exists:categories,id'],
             'model_id'     => ['required', 'integer', 'exists:models,id'],
             'room_name'    => ['required', 'string', 'max:255'],
-            'staff_id'     => ['required', 'integer'],
+            'building'     => ['required', 'string', 'max:255'],
+            'room_number'  => ['required', 'string', 'max:50'],
+            'lastName'     => ['required', 'string', 'max:255'],
+            'firstName'    => ['required', 'string', 'max:255'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'import_ids.required'  => 'import_ids maydoni talab qilinadi.',
-            'import_ids.array'     => 'import_ids massiv bo\'lishi kerak.',
-            'import_ids.min'       => 'import_ids kamida 1 ta element bo\'lishi kerak.',
-            'import_ids.*.integer' => 'Har bir import_id butun son bo\'lishi kerak.',
-            'import_ids.*.exists'  => ':input ID li uzasbo_imports yozuvi topilmadi.',
-            'type_id.required'     => 'type_id maydoni talab qilinadi.',
-            'type_id.exists'       => 'Tanlangan type_id tapes jadvalida mavjud emas.',
-            'category_id.required' => 'category_id maydoni talab qilinadi.',
-            'category_id.exists'   => 'Tanlangan category_id categories jadvalida mavjud emas.',
-            'model_id.required'    => 'model_id maydoni talab qilinadi.',
-            'model_id.exists'      => 'Tanlangan model_id models jadvalida mavjud emas.',
-            'room_name.required'   => 'room_name maydoni talab qilinadi.',
-            'staff_id.required'    => 'staff_id maydoni talab qilinadi.',
-            'staff_id.integer'     => 'staff_id butun son bo\'lishi kerak.',
+            'import_ids.required'   => 'import_ids maydoni majburiy.',
+            'import_ids.array'      => 'import_ids massiv bo\'lishi kerak.',
+            'import_ids.min'        => 'import_ids kamida 1 ta element bo\'lishi kerak.',
+            'import_ids.*.integer'  => 'import_ids elementlari butun son bo\'lishi kerak.',
+            'import_ids.*.exists'   => 'Tanlangan import yozuvi mavjud emas.',
+            'type_id.required'      => 'type_id maydoni majburiy.',
+            'type_id.exists'        => 'Tanlangan type mavjud emas.',
+            'category_id.required'  => 'category_id maydoni majburiy.',
+            'category_id.exists'    => 'Tanlangan category mavjud emas.',
+            'model_id.required'     => 'model_id maydoni majburiy.',
+            'model_id.exists'       => 'Tanlangan model mavjud emas.',
+            'room_name.required'    => 'room_name maydoni majburiy.',
+            'building.required'     => 'building maydoni majburiy.',
+            'room_number.required'  => 'room_number maydoni majburiy.',
+            'lastName.required'     => 'lastName maydoni majburiy.',
+            'firstName.required'    => 'firstName maydoni majburiy.',
         ];
     }
 }

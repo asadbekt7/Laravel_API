@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('type_id')->constrained('types')->restrictOnDelete();
             $table->string('name');
+            $table->timestamps();
         });
     }
     public function down(): void

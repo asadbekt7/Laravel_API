@@ -1,17 +1,22 @@
 <?php
 
-use App\Http\Controllers\CategoriesController;
+use App\Http\Controllers\TypeController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ModelController;
+use App\Http\Controllers\UnitController;
+use App\Http\Controllers\LocationController;
 use App\Http\Controllers\DocumentTypeController;
-use App\Http\Controllers\InventoryNumberController;
-use App\Http\Controllers\ModelsController;
-use App\Http\Controllers\NetworkController;
-use App\Http\Controllers\StatusController;
-use App\Http\Controllers\UnityController;
+use App\Http\Controllers\Api\ReceivingController;
+use App\Http\Controllers\Api\InventoryImportController;
+
+
+
+
 //use App\Http\Controllers\Api\AttachmentController;
 use App\Http\Controllers\Api\WarehouseController;
 use App\Http\Controllers\Api\ComputerController;
 use App\Http\Controllers\StaffController;
-use App\Http\Controllers\Api\InventoryImportController;
+
 use App\Http\Controllers\Api\UzasboImportController;
 use App\Http\Controllers\Api\TransferController;
 use Illuminate\Http\Request;
@@ -20,36 +25,35 @@ use Illuminate\Support\Facades\Route;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
-Route::get('category', [CategoriesController::class, 'index']);
-Route::get('category/{id}', [CategoriesController::class, 'show']);
-Route::apiResource('model', ModelsController::class);
-Route::get('status', [StatusController::class, 'index']);
-Route::get('status/{id}', [StatusController::class, 'show']);
-Route::get('network', [NetworkController::class, 'index']);
-Route::get('network/{id}', [NetworkController::class, 'show']);
-Route::apiResource('inventorynumber', InventorynumberController::class);
-Route::get('unit', [UnityController::class, 'index']);
-Route::get('unit/{id}', [UnityController::class, 'show']);
-//Route::prefix('attachments')->group(function () {
-//    Route::get('/',            [AttachmentController::class, 'index']);
-//    Route::post('/',           [AttachmentController::class, 'store']);
-//    Route::delete('/{attachment}', [AttachmentController::class, 'destroy']);
-//});
-Route::apiResource('warehouse', WarehouseController::class);
-Route::post('computers/transfer', [ComputerController::class, 'transfer'])
-    ->name('computers.transfer');
-
-Route::apiResource('computers', ComputerController::class);
-Route::get('staff', [StaffController::class, 'index']);
+//Type
+Route::apiResource('types', TypeController::class);
+//Category
+Route::apiResource('categories', CategoryController::class);
+//Model
+Route::apiResource('models', ModelController::class);
+//Unit
+Route::apiResource('units', UnitController::class);
+//location
+Route::apiResource('locations', LocationController::class);
+//Document-Type
+Route::apiResource('document-types', DocumentTypeController::class);
+//Receiving
+Route::apiResource('receivings', ReceivingController::class);
+//Excel import
 Route::post('/inventory/import', InventoryImportController::class)
     ->name('inventory.import');
-Route::prefix('uzasbo-imports')->controller(UzasboImportController::class)->group(function () {
-    Route::get('/',          'index');
-    Route::get('/{id}',      'show');
-    Route::post('/transfer', 'transfer');
+//Uzasbo Import va Transfer
+Route::prefix('uzasbo-imports')->group(function () {
+    Route::get('/',           [UzasboImportController::class, 'index']);
+    Route::get('/{id}',       [UzasboImportController::class, 'show']);
+    Route::post('/transfer',  [UzasboImportController::class, 'transfer']);
 });
-Route::get('/document-types', [DocumentTypeController::class, 'index']);
-Route::get('/document-types/{id}', [DocumentTypeController::class, 'show']);
+
+
+Route::apiResource('warehouse', WarehouseController::class);
+
+
+
 Route::prefix('transfers')->group(function () {
     Route::post('/', [TransferController::class, 'store']);
 });

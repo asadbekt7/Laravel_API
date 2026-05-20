@@ -2,149 +2,219 @@
 
 namespace App\Services;
 
+use App\Exceptions\ExternalApi\ApiConnectionException;
+use App\Exceptions\ExternalApi\ApiInvalidResponseException;
+use App\Exceptions\ExternalApi\ApiRequestFailedException;
 use App\Exceptions\RoomApiException;
-use App\Http\Requests\TransferUzasboImportRequest;
 use App\Models\ItemsModel;
-use App\Models\UnitModel;
 use App\Models\UzasboImportModel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Throwable;
 
-readonly class UzasboImportTransferService
+class UzasboImportTransferService
 {
     public function __construct(
-        private StaffApiService $staffApiService,
-        private RoomApiService  $roomApiService,
+        protected RoomApiService  $roomApiService,
+        protected StaffApiService $staffApiService,
     ) {}
 
-    public function transfer(TransferUzasboImportRequest $request): array
+    /**
+     * @param  array<int>  $importIds
+     * @param  array{type_id: int, category_id: int, model_id: int, room_name: string, last_name: string}  $params
+     * @return array{transferred: array, skipped: array, errors: array, summary: array}
+     *
+     * @throws RoomApiException
+     * @throws ApiConnectionException
+     * @throws ApiRequestFailedException
+     * @throws ApiInvalidResponseException
+     */
+    public function transfer(array $importIds, array $params): array
     {
-        $importIds  = $request->input('import_ids');
-        $typeId     = $request->input('type_id');
-        $categoryId = $request->input('category_id');
-        $modelId    = $request->input('model_id');
-        $roomName   = $request->input('room_name');
-        $staffId    = (int) $request->input('staff_id');
+        $importIds = array_values(array_unique($importIds));
 
-        // 1. Staff mavjudligini tekshirish
-        $this->validateStaffExists($staffId);
-
-        // 2. Room ma'lumotlarini tashqi API dan olish
-        // getRoomData() topilmasa RoomApiException tashlaydi
-        // topilsa: ['room_name' => ..., 'room_number' => ..., 'building' => ...]
-        $roomData = $this->roomApiService->getRoomData($roomName);
+        // Tashqi API lar — tranzaksiya tashqarisida
+        $roomInfo  = $this->fetchRoomInfo($params['room_name']);
+        $staffInfo = $this->fetchStaffInfo($params['last_name']);
+        $fullName  = $this->buildFullName($staffInfo);
+        $unitMap   = $this->loadUnitMap();
 
         $transferred = [];
         $skipped     = [];
+        $errors      = [];
 
-        try {
-            DB::transaction(function () use (
-                $importIds,
-                $typeId,
-                $categoryId,
-                $modelId,
-                $roomData,
-                $staffId,
-                &$transferred,
-                &$skipped
-            ) {
-                $imports = UzasboImportModel::whereIn('id', $importIds)
-                    ->where(function ($query) {
-                        $query->whereNull('status')
-                            ->orWhere('status', '!=', 'transferred');
-                    })
-                    ->get();
+        // Asosiy tranzaksiya — lock olish uchun
+        DB::transaction(function () use (
+            $importIds, $params, $roomInfo, $staffInfo, $fullName, $unitMap,
+            &$transferred, &$skipped, &$errors
+        ) {
+            // lockForUpdate tranzaksiya ICHIDA
+            $imports = UzasboImportModel::whereIn('id', $importIds)
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
 
-                $fetchedIds     = $imports->pluck('id')->toArray();
-                $alreadyDoneIds = array_diff($importIds, $fetchedIds);
+            foreach ($importIds as $importId) {
+                /** @var UzasboImportModel|null $import */
+                $import = $imports->get($importId);
 
-                foreach ($alreadyDoneIds as $doneId) {
-                    $skipped[] = [
-                        'import_id'        => $doneId,
-                        'inventory_number' => null,
-                        'reason'           => 'Already transferred',
-                    ];
+                if (! $import) {
+                    $skipped[] = ['id' => $importId, 'reason' => 'Yozuv topilmadi.'];
+                    continue;
                 }
 
-                foreach ($imports as $import) {
-                    $exists = ItemsModel::where('inventory_number', $import->inventory_number)->exists();
-
-                    if ($exists) {
-                        $skipped[] = [
-                            'import_id'        => $import->id,
-                            'inventory_number' => $import->inventory_number,
-                            'reason'           => 'inventory_number already exists in items table',
-                        ];
-                        continue;
-                    }
-
-                    $unitId = $this->resolveUnitId($import->unit);
-
-                    ItemsModel::create([
-                        'uzasbo_import_id' => $import->id,
-                        'name'             => $import->name,
-                        'type_id'          => $typeId,
-                        'category_id'      => $categoryId,
-                        'model_id'         => $modelId,
-                        'quantity'         => 1,
-                        'unit_id'          => $unitId,
+                if ($import->status === 'transfered') {
+                    $skipped[] = [
+                        'id'               => $importId,
                         'inventory_number' => $import->inventory_number,
-                        'room_name'        => $roomData['room_name'],
-                        'building'         => $roomData['building'],
-                        'room_number'      => $roomData['room_number'],
-                        'staff_id'         => $staffId,
-                        'condition'        => 'new',
-                        'status'           => 'active',
-                        'notes'            => null,
+                        'reason'           => 'Allaqachon transfer qilingan.',
+                    ];
+                    continue;
+                }
+
+                // Har bir yozuv uchun nested transaction (PostgreSQL savepoint yaratadi)
+                try {
+                    DB::transaction(function () use (
+                        $import, $params, $roomInfo, $staffInfo, $fullName, $unitMap,
+                        &$transferred
+                    ) {
+                        $unitId   = $this->resolveUnitId($import->unit, $unitMap);
+                        $quantity = max(1, (int) ($import->closing_quantity ?? 1));
+
+                        $item = ItemsModel::create([
+                            'uzasbo_import_id' => $import->id,
+                            'receiving_id'     => null,
+                            'name'             => $import->name,
+                            'document_number'  => $import->account_number,
+                            'supplier_name'    => null,
+                            'batch_number'     => null,
+                            'type_id'          => $params['type_id'],
+                            'category_id'      => $params['category_id'],
+                            'model_id'         => $params['model_id'],
+                            'quantity'         => $quantity,
+                            'unit_id'          => $unitId,
+                            'inventory_number' => $import->inventory_number,
+                            'room_name'        => $roomInfo['room_name'],
+                            'building'         => $roomInfo['building'],
+                            'room_number'      => $roomInfo['room_number'],
+                            'last_name'        => $staffInfo['last_name'],
+                            'first_name'       => $staffInfo['first_name'],
+                            'middle_name'      => $staffInfo['middle_name'],
+                            'full_name'        => $fullName,
+                            'department'       => $staffInfo['department'] ?? $import->department,
+                            'condition'        => 'good',
+                            'status'           => 'active',
+                            'notes'            => $import->expense_article,
+                        ]);
+
+                        $import->update(['status' => 'transfered']);
+
+                        $transferred[] = [
+                            'import_id'        => $import->id,
+                            'item_id'          => $item->id,
+                            'inventory_number' => $item->inventory_number,
+                        ];
+                    });
+
+                } catch (\Exception $e) {
+                    // Faqat shu yozuv rollback bo'ladi, qolganlar davom etadi
+                    Log::error('UzasboImportTransferService: yozuv transfer qilinmadi.', [
+                        'import_id' => $importId,
+                        'error'     => $e->getMessage(),
                     ]);
 
-                    $import->status = 'transferred';
-                    $import->save();
-
-                    $transferred[] = $import->id;
+                    $errors[] = [
+                        'id'    => $importId,
+                        'error' => $e->getMessage(),
+                    ];
                 }
-            });
+            }
 
-        } catch (Throwable $e) {
-            Log::error('UzasboImportTransferService::transfer xatosi', [
-                'message'    => $e->getMessage(),
-                'import_ids' => $importIds,
-                'trace'      => $e->getTraceAsString(),
-            ]);
-
-            throw $e;
-        }
+            if (empty($transferred) && ! empty($errors)) {
+                throw new \RuntimeException(
+                    'Barcha yozuvlarda xatolik yuz berdi. Transfer bekor qilindi.'
+                );
+            }
+        });
 
         return [
             'transferred' => $transferred,
             'skipped'     => $skipped,
-            'errors'      => [],
+            'errors'      => $errors,
+            'summary'     => [
+                'total'       => count($importIds),
+                'transferred' => count($transferred),
+                'skipped'     => count($skipped),
+                'errors'      => count($errors),
+            ],
         ];
     }
 
-    private function validateStaffExists(int $staffId): void
-    {
-        // getStaffById() bo'sh array qaytarsa — topilmadi
-        $staff = $this->staffApiService->getStaffById($staffId);
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
 
-        if (empty($staff)) {
-            throw new \InvalidArgumentException(
-                "staff_id {$staffId} tashqi Staff API da topilmadi."
-            );
-        }
+    /** @throws RoomApiException */
+    private function fetchRoomInfo(string $roomName): array
+    {
+        return $this->roomApiService->getRoomData($roomName);
     }
 
-    private function resolveUnitId(?string $unitName): int
+    /**
+     * @throws ApiConnectionException
+     * @throws ApiRequestFailedException
+     * @throws ApiInvalidResponseException
+     * @throws \RuntimeException
+     */
+    private function fetchStaffInfo(string $lastName): array
     {
-        $defaultUnitId = (int) config('app.default_unit_id', env('DEFAULT_UNIT_ID', 1));
+        $results = $this->staffApiService->searchStaff($lastName);
 
-        if (empty($unitName)) {
-            return $defaultUnitId;
+        if (empty($results)) {
+            throw new \RuntimeException("'{$lastName}' familiyali xodim topilmadi.");
         }
 
-        $unit = UnitModel::where('name', $unitName)->first();
+        return $results[0];
+    }
 
-        return $unit ? $unit->id : $defaultUnitId;
+    /**
+     * full_name ni ishonchli tarzda yasash.
+     * API bo'sh string yoki null qaytarsa ham to'g'ri ishlaydi.
+     */
+    private function buildFullName(array $staffInfo): string
+    {
+        if (! empty($staffInfo['full_name'])) {
+            return $staffInfo['full_name'];
+        }
+
+        return trim(implode(' ', array_filter([
+            $staffInfo['last_name']   ?? '',
+            $staffInfo['first_name']  ?? '',
+            $staffInfo['middle_name'] ?? '',
+        ])));
+    }
+
+    /**
+     * Barcha unitlarni bir marta yuklab olish.
+     *
+     * @return array<string, int>
+     */
+    private function loadUnitMap(): array
+    {
+        return DB::table('units')
+            ->get(['id', 'name'])
+            ->mapWithKeys(fn($unit) => [mb_strtolower(trim($unit->name)) => $unit->id])
+            ->toArray();
+    }
+
+    /**
+     * @param  array<string, int>  $unitMap
+     */
+    private function resolveUnitId(?string $unitName, array $unitMap): int
+    {
+        if (! $unitName) {
+            return 1;
+        }
+
+        return $unitMap[mb_strtolower(trim($unitName))] ?? 1;
     }
 }

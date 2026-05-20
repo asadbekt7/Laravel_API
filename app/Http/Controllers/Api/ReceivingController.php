@@ -3,54 +3,101 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreReceivingRequest;
-use App\Http\Requests\UpdateReceivingRequest;
-use App\Http\Resources\ReceivingResource;
-use App\Http\Traits\ApiResponse;
-use App\Services\ReceivingService;
+use App\Http\Requests\Receiving\StoreReceivingRequest;
+use App\Http\Requests\Receiving\UpdateReceivingRequest;
+use App\Models\ReceivingModel;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ReceivingController extends Controller
 {
-    use ApiResponse;
-
-    public function __construct(
-        private readonly ReceivingService $service,
-    ) {}
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $result = $this->service->paginate(request()->integer('per_page', 15));
+        $receivings = ReceivingModel::with([
+            'documentType:id,name',
+            'warehouse'
+        ])
+            ->when($request->search, fn($q) => $q->where('document_number', 'ilike', "%{$request->search}%")
+                ->orWhere('supplier_name', 'ilike', "%{$request->search}%"))
+            ->when($request->document_type_id, fn($q) => $q->where('document_type_id', $request->document_type_id))
+            ->when($request->from_date, fn($q) => $q->whereDate('document_date', '>=', $request->from_date))
+            ->when($request->to_date, fn($q) => $q->whereDate('document_date', '<=', $request->to_date))
+            ->orderBy('id', 'desc')
+            ->paginate($request->integer('per_page', 15));
 
-        return $this->paginated($result, ReceivingResource::class);
+        return response()->json([
+            'success' => true,
+            'data'    => $receivings
+        ]);
     }
-    public function all(): JsonResponse
-    {
-        $receivings = $this->service->getAll();
 
-        return $this->success(ReceivingResource::collection($receivings));
-    }
     public function store(StoreReceivingRequest $request): JsonResponse
     {
-        $receiving = $this->service->create($request->validated());
+        $receiving = ReceivingModel::create($request->validated());
+        $receiving->load(['documentType:id,name', 'warehouse']);
 
-        return $this->created(new ReceivingResource($receiving));
+        return response()->json([
+            'success' => true,
+            'data'    => $receiving
+        ], 201);
     }
+
     public function show(int $id): JsonResponse
     {
-        $receiving = $this->service->findWithItems($id);
+        $receiving = ReceivingModel::with([
+            'documentType:id,name',
+            'warehouse'
+        ])->find($id);
 
-        return $this->success(new ReceivingResource($receiving));
+        if (!$receiving) {
+            return response()->json([
+                'success' => false,
+                'message' => "Sorry, receiving with id {$id} cannot be found"
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data'    => $receiving
+        ]);
     }
+
     public function update(UpdateReceivingRequest $request, int $id): JsonResponse
     {
-        $receiving = $this->service->update($id, $request->validated());
+        $receiving = ReceivingModel::find($id);
 
-        return $this->success(new ReceivingResource($receiving), 'Receiving updated successfully.');
+        if (!$receiving) {
+            return response()->json([
+                'success' => false,
+                'message' => "Sorry, receiving with id {$id} cannot be found"
+            ], 404);
+        }
+
+        $receiving->update($request->validated());
+        $receiving->load(['documentType:id,name', 'warehouse']);
+
+        return response()->json([
+            'success' => true,
+            'data'    => $receiving
+        ]);
     }
+
     public function destroy(int $id): JsonResponse
     {
-        $this->service->delete($id);
+        $receiving = ReceivingModel::find($id);
 
-        return $this->noContent('Receiving deleted successfully.');
+        if (!$receiving) {
+            return response()->json([
+                'success' => false,
+                'message' => "Sorry, receiving with id {$id} cannot be found"
+            ], 404);
+        }
+
+        $receiving->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Receiving muvaffaqiyatli ochirildi'
+        ]);
     }
 }

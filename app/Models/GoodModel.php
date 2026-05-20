@@ -16,4 +16,4 @@ class GoodModel extends Model
         return $this->belongsTo(CategoryModel::class, 'category_id');
     }
 }
-// itemModel = Model ga
+// GoodModel = Model ga
