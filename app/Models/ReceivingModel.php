@@ -15,7 +15,7 @@ class ReceivingModel extends Model
         'document_type_id',
         'document_number',
         'document_date',
-        'supplier_name',
+        'supplier_id',
         'delivery_date',
         'batch_number',
         'batch_cost',
