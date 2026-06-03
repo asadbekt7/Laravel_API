@@ -16,12 +16,8 @@ class ItemsController extends Controller
     {
         $query = ItemsModel::with(['unit', 'type', 'category', 'model', 'uzasboImport']);
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('condition')) {
-            $query->where('condition', $request->condition);
+        if ($request->filled('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
         }
 
         if ($request->filled('type_id')) {
@@ -32,6 +28,10 @@ class ItemsController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
+        if ($request->filled('model_id')) {
+            $query->where('model_id', $request->model_id);
+        }
+
         if ($request->filled('building')) {
             $query->where('building', $request->building);
         }
@@ -39,6 +39,15 @@ class ItemsController extends Controller
         if ($request->filled('room_number')) {
             $query->where('room_number', $request->room_number);
         }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('condition')) {
+            $query->where('condition', $request->condition);
+        }
+
         if ($request->filled('full_name')) {
             $query->where('full_name', 'like', '%' . $request->full_name . '%');
         }
@@ -46,9 +55,9 @@ class ItemsController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('inventory_number', 'like', "%{$search}%")
-                    ->orWhere('full_name', 'like', "%{$search}%");
+                $q->where('name', 'ILIKE', "%{$search}%")
+                    ->orWhere('inventory_number', 'ILIKE', "%{$search}%")
+                    ->orWhere('full_name', 'ILIKE', "%{$search}%");
             });
         }
 
