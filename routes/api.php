@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\UzasboImportController;
 use App\Http\Controllers\Api\ItemsController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\StaffNameController;
 
 use App\Http\Controllers\Api\WarehouseController;
 
@@ -68,6 +69,12 @@ Route::get('/staff/search', [StaffController::class, 'search']);
 
 //Supplier
 Route::apiResource('suppliers', SupplierController::class);
+
+//StaffName
+Route::controller(StaffNameController::class)->group(function () {
+    Route::get('/staff-names',       'index');
+    Route::get('/staff-names/items', 'show');
+});
 
 //Warehouse
 Route::apiResource('warehouse', WarehouseController::class);

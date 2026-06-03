@@ -22,6 +22,9 @@ class TransferImportRequest extends FormRequest
             'model_id'     => ['required', 'integer', 'exists:models,id'],
             'room_name'    => ['required', 'string', 'min:1'],
             'last_name'    => ['required', 'string', 'min:2'],
+            'staff_id'     => ['nullable', 'string', 'max:50'],
+            'first_name'   => ['nullable', 'string', 'max:100'],
+            'middle_name'  => ['nullable', 'string', 'max:100'],
         ];
     }
 

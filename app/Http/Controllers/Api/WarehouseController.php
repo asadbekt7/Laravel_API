@@ -1,21 +1,25 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\WarehouseStoreRequest;
-use App\Services\WarehouseService;
+use App\Http\Requests\Warehouse\StoreWarehouseRequest;
+use App\Http\Requests\Warehouse\UpdateWarehouseRequest;
+use App\Models\WarehouseModel;
 use Illuminate\Http\JsonResponse;
 
 class WarehouseController extends Controller
 {
-    public function __construct(
-        private readonly WarehouseService $warehouseService
-    ) {}
-
     public function index(): JsonResponse
     {
-        $items = $this->warehouseService->getAll();
+        $items = WarehouseModel::with([
+            'receiving',
+            'supplier',
+            'type',
+            'category',
+            'model',
+            'unit',
+            'location',
+        ])->get();
 
         return response()->json([
             'success' => true,
@@ -23,35 +27,61 @@ class WarehouseController extends Controller
         ]);
     }
 
-    public function store(WarehouseStoreRequest $request): JsonResponse
+    public function store(StoreWarehouseRequest $request): JsonResponse
     {
-        $records = $this->warehouseService->createBulk($request->validated());
+        $warehouse = WarehouseModel::create($request->validated());
 
         return response()->json([
             'success' => true,
-            'message' => count($records) . ' ta record muvaffaqiyatli yaratildi',
-            'count'   => count($records),
-            'data'    => $records,
+            'message' => 'Warehouse item created successfully.',
+            'data'    => $warehouse->load([
+                'receiving', 'supplier', 'type',
+                'category', 'model', 'unit', 'location',
+            ]),
         ], 201);
     }
 
     public function show(int $id): JsonResponse
     {
-        $item = $this->warehouseService->findById($id);
+        $warehouse = WarehouseModel::with([
+            'receiving',
+            'supplier',
+            'type',
+            'category',
+            'model',
+            'unit',
+            'location',
+        ])->findOrFail($id);
 
         return response()->json([
             'success' => true,
-            'data'    => $item,
+            'data'    => $warehouse,
+        ]);
+    }
+
+    public function update(UpdateWarehouseRequest $request, int $id): JsonResponse
+    {
+        $warehouse = WarehouseModel::findOrFail($id);
+        $warehouse->update($request->validated());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Warehouse item updated successfully.',
+            'data'    => $warehouse->load([
+                'receiving', 'supplier', 'type',
+                'category', 'model', 'unit', 'location',
+            ]),
         ]);
     }
 
     public function destroy(int $id): JsonResponse
     {
-        $this->warehouseService->delete($id);
+        $warehouse = WarehouseModel::findOrFail($id);
+        $warehouse->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Record o\'chirildi',
+            'message' => 'Warehouse item deleted successfully.',
         ]);
     }
 }

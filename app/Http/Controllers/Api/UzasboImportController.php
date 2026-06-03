@@ -22,13 +22,26 @@ class UzasboImportController extends Controller
      * GET /api/uzasbo-imports
      * status = null yoki 'transfered' bo'lmaganlarni qaytaradi
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $imports = UzasboImportModel::where(function ($query) {
             $query->whereNull('status')
                 ->orWhere('status', '!=', 'transfered');
         })
-            ->get();
+            ->when($request->search, function ($q) use ($request) {
+                $term = '%' . strtolower($request->search) . '%';
+                $q->where(function ($w) use ($term) {
+                    $w->whereRaw('LOWER(name) like ?', [$term])
+                        ->orWhereRaw('LOWER(full_name) like ?', [$term])
+                        ->orWhereRaw('LOWER(inventory_number) like ?', [$term])
+                        ->orWhereRaw('LOWER(department) like ?', [$term]);
+
+                });
+            })
+            ->when($request->department, fn($q) => $q->where('department', $request->department))
+            ->when($request->import_type, fn($q) => $q->where('import_type', $request->import_type))
+            ->orderBy('id', 'desc')
+            ->paginate($request->integer('per_page', 25));
 
         return response()->json([
             'success' => true,

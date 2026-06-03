@@ -39,6 +39,9 @@ class ItemsController extends Controller
         if ($request->filled('room_number')) {
             $query->where('room_number', $request->room_number);
         }
+        if ($request->filled('full_name')) {
+            $query->where('full_name', 'like', '%' . $request->full_name . '%');
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;

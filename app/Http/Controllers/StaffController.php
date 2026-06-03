@@ -56,6 +56,7 @@ class StaffController extends Controller
 
         $items = array_map(function (array $r) {
             return [
+                'id'          => $r['id']          ?? null,
                 'lastName'    => $r['last_name']   ?? '',
                 'firstName'   => $r['first_name']  ?? '',
                 'middleName'  => $r['middle_name'] ?? null,

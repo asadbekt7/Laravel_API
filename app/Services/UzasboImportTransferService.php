@@ -34,7 +34,7 @@ class UzasboImportTransferService
 
         // Tashqi API lar — tranzaksiya tashqarisida
         $roomInfo  = $this->fetchRoomInfo($params['room_name']);
-        $staffInfo = $this->fetchStaffInfo($params['last_name']);
+        $staffInfo = $this->fetchStaffInfo($params);
         $fullName  = $this->buildFullName($staffInfo);
         $unitMap   = $this->loadUnitMap();
 
@@ -165,12 +165,35 @@ class UzasboImportTransferService
      * @throws ApiInvalidResponseException
      * @throws \RuntimeException
      */
-    private function fetchStaffInfo(string $lastName): array
+    private function fetchStaffInfo(array $params): array
     {
+        $lastName = $params['last_name'];
         $results = $this->staffApiService->searchStaff($lastName);
 
         if (empty($results)) {
             throw new \RuntimeException("'{$lastName}' familiyali xodim topilmadi.");
+        }
+
+        if (!empty($params['staff_id'])) {
+            $needle = (string) $params['staff_id'];
+            foreach ($results as $s) {
+                if ((string) ($s['id'] ?? '') === $needle) {
+                    return $s;
+                }
+            }
+            throw new \RuntimeException("ID={$needle} li xodim qidiruv natijalarida topilmadi.");
+        }
+
+        $hasFirst  = !empty($params['first_name']);
+        $hasMiddle = !empty($params['middle_name']);
+        if ($hasFirst || $hasMiddle) {
+            foreach ($results as $s) {
+                $firstOk  = !$hasFirst  || mb_strtolower(trim($s['first_name']  ?? '')) === mb_strtolower(trim($params['first_name']));
+                $middleOk = !$hasMiddle || mb_strtolower(trim($s['middle_name'] ?? '')) === mb_strtolower(trim($params['middle_name']));
+                if ($firstOk && $middleOk) {
+                    return $s;
+                }
+            }
         }
 
         return $results[0];

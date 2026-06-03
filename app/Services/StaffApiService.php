@@ -173,6 +173,7 @@ class StaffApiService
             }
 
             $result[] = [
+                'id'          => isset($item['id']) ? (string) $item['id'] : null,
                 'last_name'   => $item['lastName'],
                 'first_name'  => $item['firstName'],
                 'middle_name' => isset($item['middleName']) && is_string($item['middleName'])
