@@ -18,7 +18,7 @@ return new class extends Migration
                 ->constrained('suppliers')
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();  ;
-            $table->string('123', 30)->nullable();
+            $table->string('shartnoma_raqam', 30)->nullable();
             $table->date('shartnoma_sana')->nullable();
             $table->string('shartnoma_fayl')->nullable(); // fayl yo'li saqlanadi
             $table->string('xaridor_full_name', 50)->nullable();
