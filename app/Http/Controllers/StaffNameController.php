@@ -8,18 +8,29 @@ use Illuminate\Http\Request;
 
 class StaffNameController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
+        $allowedSorts = ['full_name', 'department', 'total_items'];
+        $sort = in_array($request->sort, $allowedSorts, true) ? $request->sort : 'full_name';
+        $dir  = strtolower((string) $request->dir) === 'desc' ? 'desc' : 'asc';
+
         $staffNames = ItemsModel::query()
             ->select('full_name', 'first_name', 'last_name', 'middle_name', 'department')
             ->selectRaw('COUNT(*) as total_items')
+            ->when($request->search, function ($q) use ($request) {
+                $term = '%' . strtolower($request->search) . '%';
+                $q->where(function ($w) use ($term) {
+                    $w->whereRaw('LOWER(full_name) like ?', [$term])
+                        ->orWhereRaw('LOWER(department) like ?', [$term]);
+                });
+            })
             ->groupBy('full_name', 'first_name', 'last_name', 'middle_name', 'department')
-            ->orderBy('full_name')
-            ->get();
+            ->orderBy($sort, $dir)
+            ->paginate($request->integer('per_page', 25));
 
         return response()->json([
-            'data'  => $staffNames,
-            'total' => $staffNames->count(),
+            'success' => true,
+            'data'    => $staffNames,
         ]);
     }
     public function show(Request $request): JsonResponse

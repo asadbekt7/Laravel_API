@@ -13,6 +13,10 @@ use App\Http\Controllers\Api\ItemsController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\StaffNameController;
+use App\Http\Controllers\InformationController;
+
+
+
 
 use App\Http\Controllers\Api\WarehouseController;
 
@@ -27,28 +31,27 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 //Type
-
 Route::apiResource('types', TypeController::class);
+
 //Category
-
 Route::apiResource('categories', CategoryController::class);
+
 //Model
-
 Route::apiResource('models', ModelController::class);
+
 //Unit
-
 Route::apiResource('units', UnitController::class);
+
 //location
-
 Route::apiResource('locations', LocationController::class);
+
 //Document-Type
-
 Route::apiResource('document-types', DocumentTypeController::class);
+
 //Receiving
-
 Route::apiResource('receivings', ReceivingController::class);
-//Excel import
 
+//Excel import
 Route::post('/inventory/import', InventoryImportController::class)
     ->name('inventory.import');
 
@@ -76,8 +79,27 @@ Route::controller(StaffNameController::class)->group(function () {
     Route::get('/staff-names/items', 'show');
 });
 
+//Information
+Route::prefix('informations')->controller(InformationController::class)->group(function () {
+
+    Route::get('/',                  'index');
+    Route::post('/',                 'store');
+    Route::get('/{id}',              'show');
+    Route::put('/{id}',              'update');
+    Route::delete('/{id}',           'destroy');
+    Route::delete('/{id}/force',     'forceDestroy');
+    Route::post('/{id}/restore',     'restore');
+
+});
+
 //Warehouse
-Route::apiResource('warehouse', WarehouseController::class);
+Route::prefix('warehouse')->controller(WarehouseController::class)->group(function () {
+    Route::get('/',        'index');
+    Route::post('/',       'store');
+    Route::get('/{id}',    'show');
+    Route::put('/{id}',    'update');
+    Route::delete('/{id}', 'destroy');
+});
 //Transfer
 Route::prefix('transfers')->group(function () {
     Route::post('/', [TransferController::class, 'store']);

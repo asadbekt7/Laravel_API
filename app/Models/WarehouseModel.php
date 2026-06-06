@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Http\Filters\QueryFilter;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -10,54 +12,56 @@ class WarehouseModel extends Model
     protected $table = 'warehouse';
 
     protected $fillable = [
-        'receiving_id',
+        'information_id',
         'name',
         'type_id',
         'category_id',
         'model_id',
-        'receiving_supplier_name',
         'quantity',
         'unit_id',
-        'condition',
         'location_id',
-        'staff_id',
-        'price_per_unit',
         'product_price',
         'description',
     ];
 
     protected $casts = [
-        'quantity'       => 'integer',
-        'staff_id'       => 'integer',
-        'price_per_unit' => 'decimal:2',
-        'product_price'  => 'decimal:2',
+        'quantity'      => 'integer',
+        'staff_id'      => 'integer',
+        'product_price' => 'decimal:2',
     ];
-    public function receiving(): BelongsTo
+
+    public function scopeFilter(Builder $query, QueryFilter $filter): Builder
     {
-        return $this->belongsTo(ReceivingModel::class, 'receiving_id');
+        return $filter->apply($query);
     }
-    public function supplier(): BelongsTo
+
+    public function information(): BelongsTo
     {
-        return $this->belongsTo(ReceivingModel::class, 'receiving_supplier_name');
+        return $this->belongsTo(InformationModel::class, 'information_id');
     }
+
     public function type(): BelongsTo
     {
-        return $this->belongsTo(TypeModel::class, 'type_id');
+        return $this->belongsTo(TypeModel::class);
     }
+
     public function category(): BelongsTo
     {
-        return $this->belongsTo(CategoryModel::class, 'category_id');
+        return $this->belongsTo(CategoryModel::class);
     }
+
     public function model(): BelongsTo
     {
         return $this->belongsTo(GoodModel::class, 'model_id');
     }
+
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(UnitModel::class, 'unit_id');
+        return $this->belongsTo(UnitModel::class);
     }
+
     public function location(): BelongsTo
     {
-        return $this->belongsTo(LocationModel::class, 'location_id');
+        return $this->belongsTo(LocationModel::class);
     }
 }
