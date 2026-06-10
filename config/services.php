@@ -35,9 +35,14 @@ return [
         ],
     ],
     'staff_api' => [
-        'base_url' => env('STAFF_API_URL',),
-        'api_key'  => env('STAFF_API_KEY'),
+        'base_url' => env('STAFF_API_BASE_URL'),
+        'username' => env('STAFF_API_USERNAME'),
+        'password' => env('STAFF_API_PASSWORD'),
         'timeout'  => env('STAFF_API_TIMEOUT', 30),
+    ],
+    'room_api' => [
+        'base_url' => env('ROOM_API_BASE_URL', 'https://manage.uwed.uz/api/timetable/public/v1/search/rooms'),
+        'timeout'  => env('ROOM_API_TIMEOUT', 10),
     ],
 
 ];

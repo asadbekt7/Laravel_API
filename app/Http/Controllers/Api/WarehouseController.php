@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Filters\WarehouseFilter;
 use App\Http\Requests\Warehouse\StoreWarehouseRequest;
 use App\Http\Requests\Warehouse\UpdateWarehouseRequest;
+use App\Http\Requests\Warehouse\BulkStoreWarehouseRequest;
 use App\Models\WarehouseModel;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class WarehouseController extends Controller
 {
@@ -45,7 +47,25 @@ class WarehouseController extends Controller
             'data'    => $warehouse,
         ], 201);
     }
-
+    // POST /api/warehouse/bulk
+    public function bulkStore(BulkStoreWarehouseRequest $request): JsonResponse
+    {
+        $informationId = $request->validated()['information_id'];
+        $items         = $request->validated()['items'];
+        $created = DB::transaction(function () use ($informationId, $items) {
+            return collect($items)->map(function (array $item) use ($informationId) {
+                $warehouse = WarehouseModel::create([
+                    'information_id' => $informationId,
+                    ...$item,
+                ]);
+                return $warehouse->load($this->relations);
+            });
+        });
+        return response()->json([
+            'message' => "{$created->count()} ta mahsulot muvaffaqiyatli yaratildi",
+            'data'    => $created,
+        ], 201);
+    }
     // GET /api/warehouse/{id}
     public function show(int $id): JsonResponse
     {

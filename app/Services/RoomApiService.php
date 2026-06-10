@@ -4,13 +4,20 @@ namespace App\Services;
 
 use App\Exceptions\RoomApiException;
 use App\Services\Contracts\RoomServiceInterface;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class RoomApiService implements RoomServiceInterface
 {
-    private string $baseUrl = 'https://manage.uwed.uz/api/timetable/public/v1/search/rooms';
-    private int $timeout = 10;
+    private string $baseUrl;
+    private int $timeout;
+
+    public function __construct()
+    {
+        $this->baseUrl = config('services.room_api.base_url');
+        $this->timeout = (int) config('services.room_api.timeout', 10);
+    }
 
     public function getRoomData(string $roomName): array
     {
@@ -19,7 +26,7 @@ class RoomApiService implements RoomServiceInterface
         return $this->findMatchingRoom($rooms, $roomName);
     }
 
-    private function sendRequest(string $roomName): \Illuminate\Http\Client\Response
+    private function sendRequest(string $roomName): Response
     {
         try {
             $response = Http::timeout($this->timeout)
@@ -46,7 +53,7 @@ class RoomApiService implements RoomServiceInterface
         }
     }
 
-    private function parseResponse(\Illuminate\Http\Client\Response $response): array
+    private function parseResponse(Response $response): array
     {
         $json = $response->json();
 
@@ -82,5 +89,12 @@ class RoomApiService implements RoomServiceInterface
 
         Log::warning('Room API da xona topilmadi', ['searched' => $roomName]);
         throw RoomApiException::roomNotFound($roomName);
+    }
+    // RoomApiService.php ga qo'shimcha metod
+
+    public function getAllRooms(string $search = ''): array
+    {
+        $response = $this->sendRequest($search);
+        return $this->parseResponse($response);
     }
 }

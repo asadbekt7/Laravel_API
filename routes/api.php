@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\ItemsController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\StaffNameController;
+use App\Http\Controllers\RoomNameController;
 use App\Http\Controllers\InformationController;
 
 
@@ -79,6 +80,13 @@ Route::controller(StaffNameController::class)->group(function () {
     Route::get('/staff-names/items', 'show');
 });
 
+//RoomName
+Route::prefix('rooms')->controller(RoomNameController::class)->group(function () {
+    Route::get('/',                'index');   // ?search=... bilan filter
+    Route::get('/{roomName}',      'show');    // API + DB birlashgan
+    Route::get('/{roomName}/items','items');   // faqat DB statistika
+});
+
 //Information
 Route::prefix('informations')->controller(InformationController::class)->group(function () {
 
@@ -93,13 +101,9 @@ Route::prefix('informations')->controller(InformationController::class)->group(f
 });
 
 //Warehouse
-Route::prefix('warehouse')->controller(WarehouseController::class)->group(function () {
-    Route::get('/',        'index');
-    Route::post('/',       'store');
-    Route::get('/{id}',    'show');
-    Route::put('/{id}',    'update');
-    Route::delete('/{id}', 'destroy');
-});
+Route::post('warehouse/bulk', [WarehouseController::class, 'bulkStore']);
+Route::apiResource('warehouse', WarehouseController::class);
+
 //Transfer
 Route::prefix('transfers')->group(function () {
     Route::post('/', [TransferController::class, 'store']);

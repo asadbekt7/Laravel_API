@@ -14,13 +14,15 @@ class StaffApiService
     private const API_NAME = 'StaffAPI';
 
     private string $baseUrl;
-    private string $token;
+    private string $username;
+    private string $password;
     private int $timeout;
 
     public function __construct()
     {
         $this->baseUrl = rtrim(config('services.staff_api.base_url'), '/');
-        $this->token   = config('services.staff_api.api_key');
+        $this->username = config('services.staff_api.username');
+        $this->password = config('services.staff_api.password');
         $this->timeout = (int) config('services.staff_api.timeout', 30);
     }
 
@@ -45,7 +47,7 @@ class StaffApiService
 
         try {
             $response = Http::timeout($this->timeout)
-                ->withToken($this->token)
+                ->withBasicAuth($this->username, $this->password)
                 ->get($url, ['search' => $search]);
         } catch (ConnectionException $e) {
             Log::warning('Staff API: connection failed.', [
