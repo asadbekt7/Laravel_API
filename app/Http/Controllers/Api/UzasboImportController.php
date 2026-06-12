@@ -91,6 +91,9 @@ class UzasboImportController extends Controller
                     'model_id',
                     'room_name',
                     'last_name',
+                    'first_name',
+                    'middle_name',
+                    'staff_id',
                 ]),
             );
 
