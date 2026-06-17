@@ -36,8 +36,7 @@ return [
     ],
     'staff_api' => [
         'base_url' => env('STAFF_API_BASE_URL'),
-        'username' => env('STAFF_API_USERNAME'),
-        'password' => env('STAFF_API_PASSWORD'),
+        'token' => env('STAFF_API_TOKEN'),
         'timeout'  => env('STAFF_API_TIMEOUT', 30),
     ],
     'room_api' => [

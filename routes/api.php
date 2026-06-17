@@ -15,8 +15,8 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\StaffNameController;
 use App\Http\Controllers\RoomNameController;
 use App\Http\Controllers\InformationController;
-
-
+use App\Http\Controllers\Api\YetkazuvchiController;
+use App\Http\Controllers\Api\MalumotController;
 
 
 use App\Http\Controllers\Api\WarehouseController;
@@ -99,6 +99,15 @@ Route::prefix('informations')->controller(InformationController::class)->group(f
     Route::post('/{id}/restore',     'restore');
 
 });
+
+//Yetkazuvchi
+Route::apiResource('yetkazuvchi', YetkazuvchiController::class);
+
+//Malumot
+Route::apiResource('malumots', MalumotController::class);
+
+
+
 
 //Warehouse
 Route::post('warehouse/bulk', [WarehouseController::class, 'bulkStore']);
