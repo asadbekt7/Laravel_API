@@ -20,7 +20,7 @@ class StaffApiService
     public function __construct()
     {
         $this->baseUrl = rtrim(config('services.staff_api.base_url'), '/');
-        $this->token   = config('services.staff_api.api_key');
+        $this->token   = config('services.staff_api.token');
         $this->timeout = (int) config('services.staff_api.timeout', 30);
     }
 
