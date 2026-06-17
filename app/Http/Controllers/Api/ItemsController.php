@@ -90,4 +90,42 @@ class ItemsController extends Controller
             'data'    => $item,
         ]);
     }
+
+    /**
+     * PUT/PATCH /api/items/{id}
+     */
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $item = ItemsModel::find($id);
+
+        if (!$item) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Item topilmadi.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'name'             => ['sometimes', 'required', 'string', 'max:255'],
+            'type_id'          => ['sometimes', 'required', 'integer', 'exists:types,id'],
+            'category_id'      => ['sometimes', 'required', 'integer', 'exists:categories,id'],
+            'model_id'         => ['sometimes', 'nullable', 'integer', 'exists:models,id'],
+            'unit_id'          => ['sometimes', 'required', 'integer', 'exists:units,id'],
+            'building'         => ['sometimes', 'nullable', 'string', 'max:255'],
+            'room_number'      => ['sometimes', 'nullable', 'string', 'max:255'],
+            'status'           => ['sometimes', 'required', 'string', 'max:100'],
+            'condition'        => ['sometimes', 'required', 'string', 'max:100'],
+            'full_name'        => ['sometimes', 'nullable', 'string', 'max:255'],
+            'inventory_number' => ['sometimes', 'nullable', 'string', 'max:255'],
+        ]);
+
+        $item->update($validated);
+        $item->load(['unit', 'type', 'category', 'model', 'uzasboImport']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Item muvaffaqiyatli yangilandi.',
+            'data'    => $item,
+        ]);
+    }
 }

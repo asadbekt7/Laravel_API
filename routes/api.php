@@ -67,6 +67,8 @@ Route::prefix('uzasbo-imports')->group(function () {
 Route::prefix('items')->group(function () {
     Route::get('/',    [ItemsController::class, 'index']);
     Route::get('/{id}', [ItemsController::class, 'show']);
+    Route::put('items/{id}',   [ItemsController::class, 'update']);
+    Route::patch('items/{id}', [ItemsController::class, 'update']);
 });
 //Staff Search
 Route::get('/staff/search', [StaffController::class, 'search']);
