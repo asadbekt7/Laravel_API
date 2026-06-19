@@ -15,6 +15,8 @@ class StoreSupplierRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255', 'unique:suppliers,name'],
+            'INN_number' => ['required', 'integer', 'max:255', 'unique:suppliers,INN_number'],
+            'JSHSHR_number' => ['required', 'integer', 'max:255', 'unique:suppliers,JSHSHR_number'],
         ];
     }
 
@@ -24,6 +26,8 @@ class StoreSupplierRequest extends FormRequest
             'name.required' => 'Supplier nomi majburiy',
             'name.unique'   => 'Bu nom allaqachon mavjud',
             'name.max'      => 'Nom 255 ta belgidan oshmasligi kerak',
+            'INN_number.required' => 'INN nomi majburiy',
+            'JSHSHR_number.required' => 'JSHSHR nomi majburiy',
         ];
     }
 }

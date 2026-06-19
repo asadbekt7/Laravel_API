@@ -15,6 +15,8 @@ class UpdateSupplierRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255', 'unique:suppliers,name,' . $this->route('id')],
+            'INN_number' => ['required', 'string', 'max:255', 'unique:suppliers,INN_number,' . $this->route('id')],
+            'JSHSHR_number' => ['required', 'string', 'max:255', 'unique:suppliers,JSHSHR_number,' . $this->route('id')],
         ];
     }
 
@@ -24,6 +26,8 @@ class UpdateSupplierRequest extends FormRequest
             'name.required' => 'Supplier nomi majburiy',
             'name.unique'   => 'Bu nom allaqachon mavjud',
             'name.max'      => 'Nom 255 ta belgidan oshmasligi kerak',
+            'INN_number.required' => 'INN nomi majburiy',
+            'JSHSHR_number.required' => 'JSHSHR nomi majburiy',
         ];
     }
 }

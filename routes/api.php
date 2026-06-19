@@ -102,11 +102,6 @@ Route::prefix('informations')->controller(InformationController::class)->group(f
 
 });
 
-//Yetkazuvchi
-Route::apiResource('yetkazuvchi', YetkazuvchiController::class);
-
-//Malumot
-Route::apiResource('malumots', MalumotController::class);
 
 
 

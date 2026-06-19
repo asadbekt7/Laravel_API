@@ -10,28 +10,33 @@ return new class extends Migration
     {
         Schema::create('informations', function (Blueprint $table) {
             $table->id();
-            $table->string('akt_raqam', 15)->nullable();
-            $table->date('akt_sana')->nullable();
-            $table->string('schet_faktura_raqam', 15)->nullable();
-            $table->date('schet_faktura_sana')->nullable();
+            $table->string('name')->unique();
+            $table->string('contract_number');
+            $table->date('contract_date');
+            $table->string('contract_file_path');
             $table->foreignId('supplier_id')
                 ->constrained('suppliers')
                 ->cascadeOnUpdate()
-                ->cascadeOnDelete();  ;
-            $table->string('shartnoma_raqam', 30)->nullable();
-            $table->date('shartnoma_sana')->nullable();
-            $table->string('shartnoma_fayl')->nullable(); // fayl yo'li saqlanadi
-            $table->string('xaridor_full_name', 50)->nullable();
-            $table->string('ishonchnoma_raqam', 20)->nullable();
-            $table->date('ishonchnoma_sana')->nullable();
-            $table->string('ishonchnoma_fayl')->nullable();
-            $table->foreignId('location_id')
-                ->constrained('locations')
+                ->cascadeOnDelete();
+            $table->string('bildirishnoma_number');
+            $table->date('bildirishnoma_date');
+            $table->string('bildirishnoma_file_path');
+            $table->string('product_name');
+            $table->foreignId('unit_id')
+                ->constrained('units')
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();
-            $table->date('ombor_qabul_sana')->nullable();
-            $table->string('ombor_qabul_xodim_full_name')->nullable();
-            $table->text('jami_summa')->nullable();
+            $table->unsignedInteger('quantity');
+            $table->decimal('price' , 20, 2);
+            $table->string('ishonchnoma_number');
+            $table->date('ishonchnoma_date');
+            $table->string('ishonchnoma_file_path');
+            $table->string('hisob_faktura');
+            $table->date('hisob_faktura_date');
+            $table->string('hisob_faktura_file_path');
+            $table->string('akt_number');
+            $table->date('akt_date');
+            $table->text('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

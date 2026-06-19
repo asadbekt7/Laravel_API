@@ -7,34 +7,45 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 class InformationModel extends Model
 {
     use SoftDeletes;
+
     protected $table = 'informations';
+
     protected $fillable = [
-        'akt_raqam',
-        'akt_sana',
-        'schet_faktura_raqam',
-        'schet_faktura_sana',
+        'name',
+        'contract_number',
+        'contract_date',
+        'contract_file_path',
         'supplier_id',
-        'shartnoma_raqam',
-        'shartnoma_sana',
-        'shartnoma_fayl',
-        'xaridor_full_name',
-        'ishonchnoma_raqam',
-        'ishonchnoma_sana',
-        'ishonchnoma_fayl',
-        'location_id',
-        'ombor_qabul_sana',
-        'ombor_qabul_xodim_full_name',
-        'jami_summa',
+        'bildirishnoma_number',
+        'bildirishnoma_date',
+        'bildirishnoma_file_path',
+        'product_name',
+        'unit_id',
+        'quantity',
+        'price',
+        'ishonchnoma_number',
+        'ishonchnoma_date',
+        'ishonchnoma_file_path',
+        'hisob_faktura',
+        'hisob_faktura_date',
+        'hisob_faktura_file_path',
+        'akt_number',
+        'akt_date',
+        'description',
     ];
+
     protected $casts = [
-        'akt_sana'               => 'date',
-        'schet_faktura_sana'   => 'date',
-        'shartnoma_sana'         => 'date',
-        'ishonchnoma_sana'       => 'date',
-        'ombor_qabul_sana'     => 'date',
+        'contract_date'      => 'date',
+        'bildirishnoma_date' => 'date',
+        'ishonchnoma_date'   => 'date',
+        'hisob_faktura_date' => 'date',
+        'akt_date'           => 'date',
+        'quantity'           => 'integer',
+        'price'              => 'decimal:2',
     ];
     public function scopeFilter(Builder $query, QueryFilter $filter): Builder
     {
@@ -44,8 +55,8 @@ class InformationModel extends Model
     {
         return $this->belongsTo(SupplierModel::class);
     }
-    public function location(): BelongsTo
+    public function unit(): BelongsTo
     {
-        return $this->belongsTo(LocationModel::class);
+        return $this->belongsTo(UnitModel::class);
     }
 }

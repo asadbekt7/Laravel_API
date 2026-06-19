@@ -17,17 +17,6 @@ class UzasboImportTransferService
         protected RoomApiService  $roomApiService,
         protected StaffApiService $staffApiService,
     ) {}
-
-    /**
-     * @param  array<int>  $importIds
-     * @param  array{type_id: int, category_id: int, model_id: int, room_name: string, last_name: string}  $params
-     * @return array{transferred: array, skipped: array, errors: array, summary: array}
-     *
-     * @throws RoomApiException
-     * @throws ApiConnectionException
-     * @throws ApiRequestFailedException
-     * @throws ApiInvalidResponseException
-     */
     public function transfer(array $importIds, array $params): array
     {
         $importIds = array_values(array_unique($importIds));

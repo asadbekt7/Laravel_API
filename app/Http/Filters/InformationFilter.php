@@ -8,104 +8,145 @@ use Illuminate\Database\Eloquent\Builder;
 class InformationFilter extends QueryFilter
 {
     use Sortable;
+
     protected array $allowedSorts = [
         'id',
-        'akt_raqam',
-        'akt_sana',
-        'shartnoma_raqam',
-        'shartnoma_sana',
-        'ombor_qabul_sana',
-        'jami_summa',
+        'name',
+        'contract_number',
+        'contract_date',
+        'bildirishnoma_number',
+        'bildirishnoma_date',
+        'ishonchnoma_number',
+        'ishonchnoma_date',
+        'hisob_faktura',
+        'hisob_faktura_date',
+        'akt_number',
+        'akt_date',
+        'quantity',
+        'price',
         'created_at',
     ];
+
     public function supplier_id(Builder $q, mixed $value): void
     {
         $q->where('supplier_id', $value);
     }
 
-    public function location_id(Builder $q, mixed $value): void
+    public function unit_id(Builder $q, mixed $value): void
     {
-        $q->where('location_id', $value);
+        $q->where('unit_id', $value);
     }
 
-    public function xaridor_full_name(Builder $q, string $value): void
+    public function name(Builder $q, string $value): void
     {
-        $q->where('xaridor_full_name', 'like', "%{$value}%");
+        $q->where('name', 'like', "%{$value}%");
     }
 
-    public function akt_raqam(Builder $q, string $value): void
+    public function product_name(Builder $q, string $value): void
     {
-        $q->where('akt_raqam', 'like', "%{$value}%");
+        $q->where('product_name', 'like', "%{$value}%");
     }
 
-    public function shartnoma_raqam(Builder $q, string $value): void
+    public function contract_number(Builder $q, string $value): void
     {
-        $q->where('shartnoma_raqam', 'like', "%{$value}%");
+        $q->where('contract_number', 'like', "%{$value}%");
     }
 
-    public function ishonchnoma_raqam(Builder $q, string $value): void
+    public function bildirishnoma_number(Builder $q, string $value): void
     {
-        $q->where('ishonchnoma_raqam', 'like', "%{$value}%");
+        $q->where('bildirishnoma_number', 'like', "%{$value}%");
     }
 
-    public function schet_faktura_raqam(Builder $q, string $value): void
+    public function ishonchnoma_number(Builder $q, string $value): void
     {
-        $q->where('schet_faktura_raqam', 'like', "%{$value}%");
+        $q->where('ishonchnoma_number', 'like', "%{$value}%");
     }
 
-    public function ombor_qabul_xodim_full_name(Builder $q, string $value): void
+    public function hisob_faktura(Builder $q, string $value): void
     {
-        $q->where('ombor_qabul_xodim_full_name', 'like', "%{$value}%");
+        $q->where('hisob_faktura', 'like', "%{$value}%");
     }
 
-    public function akt_sana_from(Builder $q, string $value): void
+    public function akt_number(Builder $q, string $value): void
     {
-        $q->whereDate('akt_sana', '>=', $value);
+        $q->where('akt_number', 'like', "%{$value}%");
     }
 
-    public function akt_sana_to(Builder $q, string $value): void
+    // contract_date range
+    public function contract_date_from(Builder $q, string $value): void
     {
-        $q->whereDate('akt_sana', '<=', $value);
+        $q->whereDate('contract_date', '>=', $value);
     }
 
-    public function shartnoma_sana_from(Builder $q, string $value): void
+    public function contract_date_to(Builder $q, string $value): void
     {
-        $q->whereDate('shartnoma_sana', '>=', $value);
+        $q->whereDate('contract_date', '<=', $value);
     }
 
-    public function shartnoma_sana_to(Builder $q, string $value): void
+    // bildirishnoma_date range
+    public function bildirishnoma_date_from(Builder $q, string $value): void
     {
-        $q->whereDate('shartnoma_sana', '<=', $value);
+        $q->whereDate('bildirishnoma_date', '>=', $value);
     }
 
-    public function ombor_qabul_sana_from(Builder $q, string $value): void
+    public function bildirishnoma_date_to(Builder $q, string $value): void
     {
-        $q->whereDate('ombor_qabul_sana', '>=', $value);
+        $q->whereDate('bildirishnoma_date', '<=', $value);
     }
 
-    public function ombor_qabul_sana_to(Builder $q, string $value): void
+    // ishonchnoma_date range
+    public function ishonchnoma_date_from(Builder $q, string $value): void
     {
-        $q->whereDate('ombor_qabul_sana', '<=', $value);
+        $q->whereDate('ishonchnoma_date', '>=', $value);
     }
 
-    public function schet_faktura_sana_from(Builder $q, string $value): void
+    public function ishonchnoma_date_to(Builder $q, string $value): void
     {
-        $q->whereDate('schet_faktura_sana', '>=', $value);
+        $q->whereDate('ishonchnoma_date', '<=', $value);
     }
 
-    public function schet_faktura_sana_to(Builder $q, string $value): void
+    // hisob_faktura_date range
+    public function hisob_faktura_date_from(Builder $q, string $value): void
     {
-        $q->whereDate('schet_faktura_sana', '<=', $value);
+        $q->whereDate('hisob_faktura_date', '>=', $value);
     }
 
-    public function ishonchnoma_sana_from(Builder $q, string $value): void
+    public function hisob_faktura_date_to(Builder $q, string $value): void
     {
-        $q->whereDate('ishonchnoma_sana', '>=', $value);
+        $q->whereDate('hisob_faktura_date', '<=', $value);
     }
 
-    public function ishonchnoma_sana_to(Builder $q, string $value): void
+    // akt_date range
+    public function akt_date_from(Builder $q, string $value): void
     {
-        $q->whereDate('ishonchnoma_sana', '<=', $value);
+        $q->whereDate('akt_date', '>=', $value);
+    }
+
+    public function akt_date_to(Builder $q, string $value): void
+    {
+        $q->whereDate('akt_date', '<=', $value);
+    }
+
+    // price range
+    public function price_from(Builder $q, mixed $value): void
+    {
+        $q->where('price', '>=', $value);
+    }
+
+    public function price_to(Builder $q, mixed $value): void
+    {
+        $q->where('price', '<=', $value);
+    }
+
+    // quantity range
+    public function quantity_from(Builder $q, mixed $value): void
+    {
+        $q->where('quantity', '>=', $value);
+    }
+
+    public function quantity_to(Builder $q, mixed $value): void
+    {
+        $q->where('quantity', '<=', $value);
     }
 
     public function with_trashed(Builder $q, mixed $value): void

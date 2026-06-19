@@ -14,7 +14,7 @@ class InformationController extends Controller
     // GET /api/informations
     public function index(InformationFilter $filter): JsonResponse
     {
-        $query = InformationModel::with(['supplier', 'location'])
+        $query = InformationModel::with(['supplier', 'unit'])
             ->filter($filter);
 
         $filter->applySorting($query, request());
@@ -30,18 +30,28 @@ class InformationController extends Controller
     {
         $validated = $request->validated();
 
-        if ($request->hasFile('shartnoma_fayl')) {
-            $validated['shartnoma_fayl'] = $request->file('shartnoma_fayl')
-                ->store('shartnomalar', 'public');
+        if ($request->hasFile('contract_file_path')) {
+            $validated['contract_file_path'] = $request->file('contract_file_path')
+                ->store('contracts', 'public');
         }
 
-        if ($request->hasFile('ishonchnoma_fayl')) {
-            $validated['ishonchnoma_fayl'] = $request->file('ishonchnoma_fayl')
+        if ($request->hasFile('bildirishnoma_file_path')) {
+            $validated['bildirishnoma_file_path'] = $request->file('bildirishnoma_file_path')
+                ->store('bildirishnomalar', 'public');
+        }
+
+        if ($request->hasFile('ishonchnoma_file_path')) {
+            $validated['ishonchnoma_file_path'] = $request->file('ishonchnoma_file_path')
                 ->store('ishonchnomalar', 'public');
         }
 
+        if ($request->hasFile('hisob_faktura_file_path')) {
+            $validated['hisob_faktura_file_path'] = $request->file('hisob_faktura_file_path')
+                ->store('hisob_fakturalar', 'public');
+        }
+
         $information = InformationModel::create($validated);
-        $information->load(['supplier', 'location']);
+        $information->load(['supplier', 'unit']);
 
         return response()->json([
             'message' => 'Muvaffaqiyatli yaratildi',
@@ -52,7 +62,7 @@ class InformationController extends Controller
     // GET /api/informations/{id}
     public function show(int $id): JsonResponse
     {
-        $information = InformationModel::with(['supplier', 'location'])
+        $information = InformationModel::with(['supplier', 'unit'])
             ->findOrFail($id);
 
         return response()->json(['data' => $information]);
@@ -64,20 +74,32 @@ class InformationController extends Controller
         $information = InformationModel::findOrFail($id);
         $validated   = $request->validated();
 
-        if ($request->hasFile('shartnoma_fayl')) {
-            Storage::disk('public')->delete($information->shartnoma_fayl ?? '');
-            $validated['shartnoma_fayl'] = $request->file('shartnoma_fayl')
-                ->store('shartnomalar', 'public');
+        if ($request->hasFile('contract_file_path')) {
+            Storage::disk('public')->delete($information->contract_file_path ?? '');
+            $validated['contract_file_path'] = $request->file('contract_file_path')
+                ->store('contracts', 'public');
         }
 
-        if ($request->hasFile('ishonchnoma_fayl')) {
-            Storage::disk('public')->delete($information->ishonchnoma_fayl ?? '');
-            $validated['ishonchnoma_fayl'] = $request->file('ishonchnoma_fayl')
+        if ($request->hasFile('bildirishnoma_file_path')) {
+            Storage::disk('public')->delete($information->bildirishnoma_file_path ?? '');
+            $validated['bildirishnoma_file_path'] = $request->file('bildirishnoma_file_path')
+                ->store('bildirishnomalar', 'public');
+        }
+
+        if ($request->hasFile('ishonchnoma_file_path')) {
+            Storage::disk('public')->delete($information->ishonchnoma_file_path ?? '');
+            $validated['ishonchnoma_file_path'] = $request->file('ishonchnoma_file_path')
                 ->store('ishonchnomalar', 'public');
         }
 
+        if ($request->hasFile('hisob_faktura_file_path')) {
+            Storage::disk('public')->delete($information->hisob_faktura_file_path ?? '');
+            $validated['hisob_faktura_file_path'] = $request->file('hisob_faktura_file_path')
+                ->store('hisob_fakturalar', 'public');
+        }
+
         $information->update($validated);
-        $information->load(['supplier', 'location']);
+        $information->load(['supplier', 'unit']);
 
         return response()->json([
             'message' => 'Muvaffaqiyatli yangilandi',
@@ -99,8 +121,10 @@ class InformationController extends Controller
         $information = InformationModel::withTrashed()->findOrFail($id);
 
         Storage::disk('public')->delete(array_filter([
-            $information->shartnoma_fayl,
-            $information->ishonchnoma_fayl,
+            $information->contract_file_path,
+            $information->bildirishnoma_file_path,
+            $information->ishonchnoma_file_path,
+            $information->hisob_faktura_file_path,
         ]));
 
         $information->forceDelete();
