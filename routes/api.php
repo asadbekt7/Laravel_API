@@ -92,14 +92,16 @@ Route::prefix('rooms')->controller(RoomNameController::class)->group(function ()
 //Information
 Route::prefix('informations')->controller(InformationController::class)->group(function () {
 
-    Route::get('/',                  'index');
-    Route::post('/',                 'store');
-    Route::get('/{id}',              'show');
-    Route::put('/{id}',              'update');
-    Route::delete('/{id}',           'destroy');
-    Route::delete('/{id}/force',     'forceDestroy');
-    Route::post('/{id}/restore',     'restore');
+    Route::get('/',              'index');
+    Route::get('/{information}', 'show');
+    Route::post('/',             'store');
+    Route::post('/bulk',         'bulkStore');
+    Route::put('/{information}', 'update');
+    Route::delete('/{information}', 'destroy');
 
+    // Soft delete
+    Route::post('/{id}/restore',      'restore');
+    Route::delete('/{id}/force',      'forceDelete');
 });
 
 
