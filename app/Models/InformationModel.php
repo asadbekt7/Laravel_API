@@ -11,7 +11,7 @@ class InformationModel extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'informations';
+    protected $table = 'information';
 
     protected $fillable = [
         'name',
