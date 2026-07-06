@@ -14,9 +14,7 @@ use App\Http\Controllers\StaffController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\StaffNameController;
 use App\Http\Controllers\RoomNameController;
-use App\Http\Controllers\InformationController;
-use App\Http\Controllers\Api\YetkazuvchiController;
-use App\Http\Controllers\Api\MalumotController;
+use App\Http\Controllers\ContractAPI\InformationController;
 
 
 use App\Http\Controllers\Api\WarehouseController;

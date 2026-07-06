@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\ContractAPI;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Information\BulkInformationRequest;
 use App\Http\Requests\Information\StoreInformationRequest;
 use App\Http\Requests\Information\UpdateInformationRequest;

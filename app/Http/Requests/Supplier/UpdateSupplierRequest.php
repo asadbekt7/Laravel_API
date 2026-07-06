@@ -26,8 +26,6 @@ class UpdateSupplierRequest extends FormRequest
             'name.required' => 'Supplier nomi majburiy',
             'name.unique'   => 'Bu nom allaqachon mavjud',
             'name.max'      => 'Nom 255 ta belgidan oshmasligi kerak',
-            'INN_number.required' => 'INN nomi majburiy',
-            'JSHSHR_number.required' => 'JSHSHR nomi majburiy',
         ];
     }
 }

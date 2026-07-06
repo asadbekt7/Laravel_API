@@ -10,12 +10,11 @@ return new class extends Migration
     {
         Schema::create('warehouse', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('information_id')->nullable()->constrained('informations')->restrictOnDelete();
+            $table->foreignId('information_id')->nullable()->constrained('information')->restrictOnDelete();
             $table->string('name');
             $table->foreignId('type_id')->constrained('types')->restrictOnDelete();
             $table->foreignId('category_id')->constrained('categories')->restrictOnDelete();
             $table->foreignId('model_id')->constrained('models')->restrictOnDelete();
-            $table->foreignId('information_shartnoma_raqam')->nullable()->constrained('informations')->restrictOnDelete();
             $table->unsignedInteger('quantity');
             $table->foreignId('unit_id')->constrained('units')->restrictOnDelete();
             $table->string('condition')->default('new');
