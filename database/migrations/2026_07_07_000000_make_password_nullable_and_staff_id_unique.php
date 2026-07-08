@@ -9,14 +9,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->unsignedBigInteger('staff_id')->nullable();
-            $table->string('full_name')->nullable();
+            $table->string('password')->nullable()->change();
+            $table->unique('staff_id');
         });
     }
+
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['staff_id', 'full_name']);
+            $table->dropUnique(['staff_id']);
+            $table->string('password')->nullable(false)->change();
         });
     }
 };

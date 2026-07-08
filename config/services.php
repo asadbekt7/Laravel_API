@@ -36,12 +36,18 @@ return [
     ],
     'staff_api' => [
         'base_url' => env('STAFF_API_BASE_URL'),
-        'token' => env('STAFF_API_TOKEN'),
         'timeout'  => env('STAFF_API_TIMEOUT', 30),
     ],
     'room_api' => [
         'base_url' => env('ROOM_API_BASE_URL', 'https://manage.uwed.uz/api/timetable/public/v1/search/rooms'),
         'timeout'  => env('ROOM_API_TIMEOUT', 10),
+    ],
+
+    'my_uwed' => [
+        'enabled' => env('MY_UWED_AUTH_ENABLED', true),
+        'secret'  => env('MY_UWED_JWT_SECRET'),
+        'cookie'  => env('MY_UWED_COOKIE') ?: null,
+        'issuer'  => env('MY_UWED_ISSUER') ?: null,
     ],
 
 ];

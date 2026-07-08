@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\ExternalApi\ApiConnectionException;
 use App\Exceptions\ExternalApi\ApiInvalidResponseException;
 use App\Exceptions\ExternalApi\ApiRequestFailedException;
+use App\Models\User;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -14,14 +15,27 @@ class StaffApiService
     private const API_NAME = 'StaffAPI';
 
     private string $baseUrl;
-    private string $token;
     private int $timeout;
 
     public function __construct()
     {
         $this->baseUrl = rtrim(config('services.staff_api.base_url'), '/');
-        $this->token   = config('services.staff_api.token');
         $this->timeout = (int) config('services.staff_api.timeout', 30);
+    }
+
+    /**
+     * @throws \RuntimeException
+     */
+    private function userToken(): string
+    {
+        $user = auth()->user();
+        $token = $user instanceof User ? $user->ssoClaims()?->token : null;
+
+        if (empty($token)) {
+            throw new \RuntimeException('Foydalanuvchi topilmadi');
+        }
+
+        return $token;
     }
 
     /**
@@ -45,7 +59,7 @@ class StaffApiService
 
         try {
             $response = Http::timeout($this->timeout)
-                ->withToken($this->token)
+                ->withToken($this->userToken())
                 ->get($url, ['search' => $search]);
         } catch (ConnectionException $e) {
             Log::warning('Staff API: connection failed.', [

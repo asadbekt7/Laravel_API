@@ -37,7 +37,7 @@ return new class extends Migration
             $table->string('hisob_faktura');
             $table->date('hisob_faktura_date');
             $table->string('hisob_faktura_file_path');
-            $table->string('hisob_faktura_name');
+            $table->string('hisob_faktura_file_name');
             $table->string('akt_number');
             $table->date('akt_date');
             $table->text('description')->nullable();

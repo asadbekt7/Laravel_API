@@ -27,8 +27,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+    $user = $request->user();
+    $claims = $user->ssoClaims();
+
+    return [
+        'id'            => $user->id,
+        'staff_id'      => $user->staff_id,
+        'full_name'     => $user->full_name,
+        'email'         => $user->email,
+        'permissions'   => $claims?->permissions ?? [],
+    ];
+});
 //Type
 Route::apiResource('types', TypeController::class);
 
