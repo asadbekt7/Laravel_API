@@ -36,7 +36,7 @@ class InformationModel extends Model
         'hisob_faktura',
         'hisob_faktura_date',
         'hisob_faktura_file_path',
-        'hisob_faktura_name',
+        'hisob_faktura_file_name',
         'akt_number',
         'akt_date',
         'description',
@@ -75,12 +75,12 @@ class InformationModel extends Model
 
     public function supplier(): BelongsTo
     {
-        return $this->belongsTo(SupplierModel::class);
+        return $this->belongsTo(SupplierModel::class,'supplier_id',);
     }
 
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(UnitModel::class);
+        return $this->belongsTo(UnitModel::class, 'unit_id',);
     }
 
     public function creator(): BelongsTo

@@ -8,59 +8,92 @@ class StoreInformationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return true; // yoki: $this->user()->can('create', InformationModel::class);
     }
 
     public function rules(): array
     {
         return [
-            'name'                       => ['required', 'string', 'max:255'],
-            'contract_number'            => ['required', 'string', 'max:255'],
-            'contract_date'              => ['required', 'date'],
-            'contract_file_path'         => ['required', 'file', 'mimes:pdf', 'max:5120'],
-            'contract_file_name'         => ['required', 'string', 'max:255'],
-            'supplier_id'                => ['required', 'integer', 'exists:suppliers,id'],
-            'bildirishnoma_number'       => ['required', 'string', 'max:255'],
-            'bildirishnoma_date'         => ['nullable', 'date'],
-            'bildirishnoma_file_path'    => ['required', 'file', 'mimes:pdf', 'max:5120'],
-            'bildirishnoma_file_name'    => ['required', 'string', 'max:255'],
-            'product_name'               => ['required', 'string', 'max:255'],
-            'unit_id'                    => ['required', 'integer', 'exists:units,id'],
-            'quantity'                   => ['required', 'integer', 'min:1'],
-            'price'                      => ['required', 'numeric', 'min:0'],
-            'ishonchnoma_number'         => ['required', 'string', 'max:255'],
-            'ishonchnoma_date'           => ['required', 'date'],
-            'ishonchnoma_file_path'      => ['required', 'file', 'mimes:pdf', 'max:5120'],
-            'ishonchnoma_file_name'      => ['required', 'string', 'max:255'],
-            'hisob_faktura'              => ['required', 'string', 'max:255'],
-            'hisob_faktura_date'         => ['required', 'date'],
-            'hisob_faktura_file_path'    => ['required', 'file', 'mimes:pdf', 'max:5120'],
-            'hisob_faktura_file_name'    => ['required', 'string', 'max:255'],
-            'akt_number'                 => ['required', 'string', 'max:255'],
-            'akt_date'                   => ['required', 'date'],
-            'description'                => ['nullable', 'string'],
+            'name'        => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:5000'],
+
+            // Shartnoma
+            'contract_number' => ['required', 'string', 'max:255'],
+            'contract_date'   => ['required', 'date', 'before_or_equal:today'],
+            'contract_file'   => ['required', 'file', 'mimes:pdf', 'max:5120'],
+
+            // Yetkazib beruvchi
+            'supplier_id' => ['required', 'integer', 'exists:suppliers,id'],
+
+            // Bildirishnoma
+            'bildirishnoma_number' => ['required', 'string', 'max:255'],
+            'bildirishnoma_date'   => ['nullable', 'date', 'before_or_equal:today'],
+            'bildirishnoma_file'   => ['required', 'file', 'mimes:pdf', 'max:5120'],
+
+            // Mahsulot
+            'product_name' => ['required', 'string', 'max:255'],
+            'unit_id'      => ['required', 'integer', 'exists:units,id'],
+            'quantity'     => ['required', 'integer', 'min:1'],
+            'price'        => ['required', 'numeric', 'min:0', 'max:999999999999.99'],
+
+            // Ishonchnoma
+            'ishonchnoma_number' => ['required', 'string', 'max:255'],
+            'ishonchnoma_date'   => ['required', 'date', 'before_or_equal:today'],
+            'ishonchnoma_file'   => ['required', 'file', 'mimes:pdf', 'max:5120'],
+
+            // Hisob-faktura
+            'hisob_faktura'      => ['required', 'string', 'max:255'],
+            'hisob_faktura_date' => ['required', 'date', 'before_or_equal:today'],
+            'hisob_faktura_file' => ['required', 'file', 'mimes:pdf', 'max:5120'],
+
+            // Akt
+            'akt_number' => ['required', 'string', 'max:255'],
+            'akt_date'   => ['required', 'date', 'before_or_equal:today'],
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'name'                 => 'nomi',
+            'description'          => 'izoh',
+            'contract_number'      => 'shartnoma raqami',
+            'contract_date'        => 'shartnoma sanasi',
+            'contract_file'        => 'shartnoma fayli',
+            'supplier_id'          => 'yetkazib beruvchi',
+            'bildirishnoma_number' => 'bildirishnoma raqami',
+            'bildirishnoma_date'   => 'bildirishnoma sanasi',
+            'bildirishnoma_file'   => 'bildirishnoma fayli',
+            'product_name'         => 'mahsulot nomi',
+            'unit_id'              => "o'lchov birligi",
+            'quantity'             => 'miqdor',
+            'price'                => 'narx',
+            'ishonchnoma_number'   => 'ishonchnoma raqami',
+            'ishonchnoma_date'     => 'ishonchnoma sanasi',
+            'ishonchnoma_file'     => 'ishonchnoma fayli',
+            'hisob_faktura'        => 'hisob-faktura raqami',
+            'hisob_faktura_date'   => 'hisob-faktura sanasi',
+            'hisob_faktura_file'   => 'hisob-faktura fayli',
+            'akt_number'           => 'akt raqami',
+            'akt_date'             => 'akt sanasi',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'name.required'            => 'Nomi majburiy.',
-            'name.max'                 => 'Nomi 255 belgidan oshmasligi kerak.',
-            'contract_number.required' => 'Shartnoma raqami majburiy.',
-            'contract_date.required'   => 'Shartnoma sanasi majburiy.',
-            'contract_date.date'       => 'Shartnoma sanasi to\'g\'ri formatda bo\'lishi kerak.',
-            'supplier_id.required'     => 'Yetkazib beruvchi majburiy.',
-            'supplier_id.exists'       => 'Tanlangan yetkazib beruvchi mavjud emas.',
-            'product_name.required'    => 'Mahsulot nomi majburiy.',
-            'unit_id.required'         => 'O\'lchov birligi majburiy.',
-            'unit_id.exists'           => 'Tanlangan o\'lchov birligi mavjud emas.',
-            'quantity.required'        => 'Miqdor majburiy.',
-            'quantity.integer'         => 'Miqdor butun son bo\'lishi kerak.',
-            'quantity.min'             => 'Miqdor 1 dan kam bo\'lmasligi kerak.',
-            'price.required'           => 'Narx majburiy.',
-            'price.numeric'            => 'Narx raqam bo\'lishi kerak.',
-            'price.min'                => 'Narx 0 dan kam bo\'lmasligi kerak.',
+            'required'        => ':attribute majburiy.',
+            'string'          => ':attribute matn bo\'lishi kerak.',
+            'max.string'      => ':attribute :max belgidan oshmasligi kerak.',
+            'max.file'        => ':attribute hajmi :max KB dan oshmasligi kerak.',
+            'date'            => ':attribute to\'g\'ri sana formatida bo\'lishi kerak.',
+            'before_or_equal' => ':attribute bugungi kundan kelajakda bo\'lishi mumkin emas.',
+            'integer'         => ':attribute butun son bo\'lishi kerak.',
+            'numeric'         => ':attribute raqam bo\'lishi kerak.',
+            'min.numeric'     => ':attribute :min dan kam bo\'lmasligi kerak.',
+            'file'            => ':attribute fayl bo\'lishi kerak.',
+            'mimes'           => ':attribute faqat PDF formatida bo\'lishi kerak.',
+            'exists'          => 'Tanlangan :attribute mavjud emas.',
         ];
     }
 }

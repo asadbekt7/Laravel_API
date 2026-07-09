@@ -97,7 +97,7 @@ Route::prefix('rooms')->controller(RoomNameController::class)->group(function ()
 });
 
 //Information
-Route::prefix('informations')->controller(InformationController::class)->group(function () {
+/*Route::prefix('informations')->controller(InformationController::class)->group(function () {
 
     Route::get('/',              'index');
     Route::get('/{information}', 'show');
@@ -109,6 +109,20 @@ Route::prefix('informations')->controller(InformationController::class)->group(f
     // Soft delete
     Route::post('/{id}/restore',      'restore');
     Route::delete('/{id}/force',      'forceDelete');
+});*/
+Route::middleware('auth:sanctum')->prefix('information')->group(function () {
+    // Statik route'lar {information} parametridan OLDIN turishi shart
+    Route::get('pending',  [InformationController::class, 'pending']);
+    Route::get('my-tasks', [InformationController::class, 'myTasks']);
+    Route::post('bulk',    [InformationController::class, 'bulkStore']);
+
+    Route::get('',  [InformationController::class, 'index']);
+    Route::post('', [InformationController::class, 'store']);
+    Route::get('{information}', [InformationController::class, 'show']);
+
+    Route::post('{information}/accept',   [InformationController::class, 'accept']);
+    Route::post('{information}/start',    [InformationController::class, 'start']);
+    Route::post('{information}/complete', [InformationController::class, 'complete']);
 });
 
 
