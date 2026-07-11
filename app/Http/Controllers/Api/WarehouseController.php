@@ -39,7 +39,10 @@ class WarehouseController extends Controller
     // POST /api/warehouse
     public function store(StoreWarehouseRequest $request): JsonResponse
     {
-        $warehouse = WarehouseModel::create($request->validated());
+        $warehouse = WarehouseModel::create([
+            ...$request->validated(),
+            'assignee_id' => auth()->id(), // qabul qilgan (kiritayotgan) odam avtomatik
+        ]);
         $warehouse->load($this->relations);
 
         return response()->json([
@@ -47,51 +50,35 @@ class WarehouseController extends Controller
             'data'    => $warehouse,
         ], 201);
     }
+
     // POST /api/warehouse/bulk
     public function bulkStore(BulkStoreWarehouseRequest $request): JsonResponse
     {
         $informationId = $request->validated()['information_id'];
         $items         = $request->validated()['items'];
+
         $created = DB::transaction(function () use ($informationId, $items) {
             return collect($items)->map(function (array $item) use ($informationId) {
                 $warehouse = WarehouseModel::create([
                     'information_id' => $informationId,
+                    'assignee_id'    => auth()->id(), // avtomatik
                     ...$item,
                 ]);
                 return $warehouse->load($this->relations);
             });
         });
+
         return response()->json([
             'message' => "{$created->count()} ta mahsulot muvaffaqiyatli yaratildi",
             'data'    => $created,
         ], 201);
     }
+
     // GET /api/warehouse/{id}
     public function show(int $id): JsonResponse
     {
         $warehouse = WarehouseModel::with($this->relations)->findOrFail($id);
 
         return response()->json(['data' => $warehouse]);
-    }
-
-    // PUT /api/warehouse/{id}
-    public function update(UpdateWarehouseRequest $request, int $id): JsonResponse
-    {
-        $warehouse = WarehouseModel::findOrFail($id);
-        $warehouse->update($request->validated());
-        $warehouse->load($this->relations);
-
-        return response()->json([
-            'message' => 'Muvaffaqiyatli yangilandi',
-            'data'    => $warehouse,
-        ]);
-    }
-
-    // DELETE /api/warehouse/{id}
-    public function destroy(int $id): JsonResponse
-    {
-        WarehouseModel::findOrFail($id)->delete();
-
-        return response()->json(['message' => "Muvaffaqiyatli o'chirildi"]);
     }
 }

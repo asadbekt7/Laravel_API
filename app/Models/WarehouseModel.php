@@ -13,6 +13,7 @@ class WarehouseModel extends Model
 
     protected $fillable = [
         'information_id',
+        'assignee_id',
         'name',
         'type_id',
         'category_id',

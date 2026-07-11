@@ -15,6 +15,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\StaffNameController;
 use App\Http\Controllers\RoomNameController;
 use App\Http\Controllers\ContractAPI\InformationController;
+use App\Http\Controllers\Api\WarehouseTransferController;
 
 
 use App\Http\Controllers\Api\WarehouseController;
@@ -132,6 +133,12 @@ Route::middleware('auth:sanctum')->prefix('information')->group(function () {
 //Warehouse
 Route::post('warehouse/bulk', [WarehouseController::class, 'bulkStore']);
 Route::apiResource('warehouse', WarehouseController::class);
+
+//warehousetransfer
+Route::middleware('auth:sanctum')->prefix('warehouse-transfer')->group(function () {
+    Route::get('staff-search', [WarehouseTransferController::class, 'staffSearch']);
+    Route::post('',            [WarehouseTransferController::class, 'store']);
+});
 
 //Transfer
 Route::prefix('transfers')->group(function () {
