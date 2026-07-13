@@ -14,7 +14,7 @@ class StoreWarehouseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'information_id' => ['nullable', 'exists:informations,id'],
+            'information_id' => ['nullable', 'exists:information,id'],
             'name'           => ['required', 'string', 'max:255'],
             'type_id'        => ['required', 'exists:types,id'],
             'category_id'    => ['required', 'exists:categories,id'],

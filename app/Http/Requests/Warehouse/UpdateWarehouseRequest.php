@@ -14,7 +14,7 @@ class UpdateWarehouseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'information_id' => ['nullable', 'exists:informations,id'],
+            'information_id' => ['nullable', 'exists:information,id'],
             'name'           => ['sometimes', 'string', 'max:255'],
             'type_id'        => ['sometimes', 'exists:types,id'],
             'category_id'    => ['sometimes', 'exists:categories,id'],

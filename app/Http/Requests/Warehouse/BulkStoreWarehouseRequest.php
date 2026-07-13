@@ -14,7 +14,7 @@ class BulkStoreWarehouseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'information_id'         => ['required', 'integer', 'exists:informations,id'],
+            'information_id'         => ['required', 'integer', 'exists:information,id'],
 
             'items'                  => ['required', 'array', 'min:1'],
             'items.*.name'           => ['required', 'string', 'max:255'],

@@ -111,7 +111,7 @@ Route::prefix('rooms')->controller(RoomNameController::class)->group(function ()
     Route::post('/{id}/restore',      'restore');
     Route::delete('/{id}/force',      'forceDelete');
 });*/
-Route::middleware('auth:sanctum')->prefix('information')->group(function () {
+Route::prefix('information')->group(function () {
     // Statik route'lar {information} parametridan OLDIN turishi shart
     Route::get('pending',  [InformationController::class, 'pending']);
     Route::get('my-tasks', [InformationController::class, 'myTasks']);
@@ -135,7 +135,7 @@ Route::post('warehouse/bulk', [WarehouseController::class, 'bulkStore']);
 Route::apiResource('warehouse', WarehouseController::class);
 
 //warehousetransfer
-Route::middleware('auth:sanctum')->prefix('warehouse-transfer')->group(function () {
+Route::prefix('warehouse-transfer')->group(function () {
     Route::get('staff-search', [WarehouseTransferController::class, 'staffSearch']);
     Route::post('',            [WarehouseTransferController::class, 'store']);
 });
