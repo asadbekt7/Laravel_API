@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ItemType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,6 +18,9 @@ class ItemsModel extends Model
         'uzasbo_import_id',
         'receiving_id',
         'name',
+        'item_type',      // ← yangi
+        'expiry_date',    // ← yangi
+        'expense_item',   // ← yangi
         'document_number',
         'supplier_name',
         'batch_number',
@@ -40,6 +44,8 @@ class ItemsModel extends Model
     ];
 
     protected $casts = [
+        'item_type'   => ItemType::class,
+        'expiry_date' => 'date',
         'quantity'  => 'integer',
         'condition' => 'string',
         'status'    => 'string',
