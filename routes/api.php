@@ -66,15 +66,15 @@ Route::post('/inventory/import', InventoryImportController::class)
 
 //Uzasbo Import va Transfer
 Route::prefix('uzasbo-imports')->group(function () {
-    Route::get('/',           [UzasboImportController::class, 'index']);
-    Route::get('/{id}',       [UzasboImportController::class, 'show']);
-    Route::post('/transfer',  [UzasboImportController::class, 'transfer']);
+    Route::get('/',           [UzasboImportController::class, 'index'])->middleware('perm:ombor.uzasbo.view');
+    Route::get('/{id}',       [UzasboImportController::class, 'show'])->middleware('perm:ombor.uzasbo.view');
+    Route::post('/transfer',  [UzasboImportController::class, 'transfer'])->middleware('perm:ombor.uzasbo.transfer');
 });
 
 //Uzasbo-Import transfer GET
-Route::prefix('items')->group(function () {
-    Route::get('/',    [ItemsController::class, 'index']);
-    Route::get('/{id}', [ItemsController::class, 'show']);
+Route::prefix('items')->middleware('crud:ombor.items')->group(function () {
+    Route::get('/',            [ItemsController::class, 'index']);
+    Route::get('/{id}',        [ItemsController::class, 'show']);
     Route::put('items/{id}',   [ItemsController::class, 'update']);
     Route::patch('items/{id}', [ItemsController::class, 'update']);
 });
@@ -82,7 +82,7 @@ Route::prefix('items')->group(function () {
 Route::get('/staff/search', [StaffController::class, 'search']);
 
 //Supplier
-Route::apiResource('suppliers', SupplierController::class);
+Route::apiResource('suppliers', SupplierController::class)->middleware('crud:ombor.suppliers');
 
 //StaffName
 Route::controller(StaffNameController::class)->group(function () {
@@ -113,17 +113,17 @@ Route::prefix('rooms')->controller(RoomNameController::class)->group(function ()
 });*/
 Route::prefix('information')->group(function () {
     // Statik route'lar {information} parametridan OLDIN turishi shart
-    Route::get('pending',  [InformationController::class, 'pending']);
-    Route::get('my-tasks', [InformationController::class, 'myTasks']);
-    Route::post('bulk',    [InformationController::class, 'bulkStore']);
+    Route::get('pending',  [InformationController::class, 'pending'])->middleware('perm:ombor.informations.view');
+    Route::get('my-tasks', [InformationController::class, 'myTasks'])->middleware('perm:ombor.informations.view');
+    Route::post('bulk',    [InformationController::class, 'bulkStore'])->middleware('perm:ombor.informations.create');
 
-    Route::get('',  [InformationController::class, 'index']);
-    Route::post('', [InformationController::class, 'store']);
-    Route::get('{information}', [InformationController::class, 'show']);
+    Route::get('',  [InformationController::class, 'index'])->middleware('perm:ombor.informations.view');
+    Route::post('', [InformationController::class, 'store'])->middleware('perm:ombor.informations.create');
+    Route::get('{information}', [InformationController::class, 'show'])->middleware('perm:ombor.informations.view');
 
-    Route::post('{information}/accept',   [InformationController::class, 'accept']);
-    Route::post('{information}/start',    [InformationController::class, 'start']);
-    Route::post('{information}/complete', [InformationController::class, 'complete']);
+    Route::post('{information}/accept',   [InformationController::class, 'accept'])->middleware('perm:ombor.informations.view');
+    Route::post('{information}/start',    [InformationController::class, 'start'])->middleware('perm:ombor.informations.view');
+    Route::post('{information}/complete', [InformationController::class, 'complete'])->middleware('perm:ombor.informations.view');
 });
 
 
@@ -131,11 +131,11 @@ Route::prefix('information')->group(function () {
 
 
 //Warehouse
-Route::post('warehouse/bulk', [WarehouseController::class, 'bulkStore']);
-Route::apiResource('warehouse', WarehouseController::class);
+Route::post('warehouse/bulk', [WarehouseController::class, 'bulkStore'])->middleware('perm:ombor.warehouse.create');
+Route::apiResource('warehouse', WarehouseController::class)->middleware('crud:ombor.warehouse');
 
 //warehousetransfer
-Route::prefix('warehouse-transfer')->group(function () {
+Route::prefix('warehouse-transfer')->middleware('perm:ombor.warehouse.update')->group(function () {
     Route::get('staff-search', [WarehouseTransferController::class, 'staffSearch']);
     Route::post('',            [WarehouseTransferController::class, 'store']);
 });
