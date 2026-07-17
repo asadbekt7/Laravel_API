@@ -24,7 +24,7 @@ class StoreWarehouseTransferRequest extends FormRequest
             'products'                    => ['required', 'array', 'min:1'],
             'products.*.warehouse_id'     => ['required', 'integer', 'exists:warehouse,id', 'distinct'],
             'products.*.quantity'         => ['required', 'integer', 'min:1'],
-            'products.*.inventory_number' => ['required', 'string', 'max:255', 'distinct', 'unique:items,inventory_number'],
+            'products.*.inventory_number' => ['nullable', 'string', 'max:255', 'distinct', 'unique:items,inventory_number'],
             'products.*.room_name'        => ['nullable', 'string', 'max:255'],
             'products.*.building'         => ['nullable', 'string', 'max:255'],
             'products.*.room_number'      => ['nullable', 'string', 'max:255'],

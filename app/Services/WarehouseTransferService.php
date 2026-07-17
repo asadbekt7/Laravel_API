@@ -58,7 +58,7 @@ class WarehouseTransferService
                     'unit_id'          => $warehouse->unit_id,
 
                     'quantity'         => $requested,
-                    'inventory_number' => $product['inventory_number'],
+                    'inventory_number' => $product['inventory_number'] ?? null,
 
                     'room_name'        => $product['room_name'] ?? null,
                     'building'         => $product['building'] ?? null,
