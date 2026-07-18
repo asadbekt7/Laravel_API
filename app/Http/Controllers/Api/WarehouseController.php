@@ -5,11 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Filters\WarehouseFilter;
 use App\Http\Requests\Warehouse\StoreWarehouseRequest;
-use App\Http\Requests\Warehouse\UpdateWarehouseRequest;
-use App\Http\Requests\Warehouse\BulkStoreWarehouseRequest;
+use App\Models\InformationModel;
 use App\Models\WarehouseModel;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 
 class WarehouseController extends Controller
 {
@@ -39,38 +37,24 @@ class WarehouseController extends Controller
     // POST /api/warehouse
     public function store(StoreWarehouseRequest $request): JsonResponse
     {
+        $data        = $request->validated();
+        $information = InformationModel::findOrFail($data['information_id']);
+
         $warehouse = WarehouseModel::create([
-            ...$request->validated(),
-            'assignee_id' => auth()->id(), // qabul qilgan (kiritayotgan) odam avtomatik
+            ...$data,
+            // 4 ta maydon Information'dan avtomatik olinadi —
+            // frontend yuborgan qiymatlar emas
+            'name'          => $information->product_name,
+            'quantity'      => $information->quantity,
+            'unit_id'       => $information->unit_id,
+            'product_price' => $information->price,
+            'assignee_id'   => auth()->id(), // kiritayotgan odam avtomatik
         ]);
         $warehouse->load($this->relations);
 
         return response()->json([
             'message' => 'Muvaffaqiyatli yaratildi',
             'data'    => $warehouse,
-        ], 201);
-    }
-
-    // POST /api/warehouse/bulk
-    public function bulkStore(BulkStoreWarehouseRequest $request): JsonResponse
-    {
-        $informationId = $request->validated()['information_id'];
-        $items         = $request->validated()['items'];
-
-        $created = DB::transaction(function () use ($informationId, $items) {
-            return collect($items)->map(function (array $item) use ($informationId) {
-                $warehouse = WarehouseModel::create([
-                    'information_id' => $informationId,
-                    'assignee_id'    => auth()->id(), // avtomatik
-                    ...$item,
-                ]);
-                return $warehouse->load($this->relations);
-            });
-        });
-
-        return response()->json([
-            'message' => "{$created->count()} ta mahsulot muvaffaqiyatli yaratildi",
-            'data'    => $created,
         ], 201);
     }
 

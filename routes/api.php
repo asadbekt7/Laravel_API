@@ -131,7 +131,6 @@ Route::prefix('information')->group(function () {
 
 
 //Warehouse
-Route::post('warehouse/bulk', [WarehouseController::class, 'bulkStore'])->middleware('perm:ombor.warehouse.create');
 Route::apiResource('warehouse', WarehouseController::class)->middleware('crud:ombor.warehouse');
 
 //warehousetransfer
