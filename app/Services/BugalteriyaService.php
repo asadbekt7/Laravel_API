@@ -55,7 +55,7 @@ class BugalteriyaService
 
                 'item_type'        => $entry->item_type,
                 'expiry_date'      => $expiryDate,
-                'statya'           => $statya,
+                'expense_item'     => $statya,
 
                 'type_id'          => $entry->type_id,
                 'category_id'      => $entry->category_id,
