@@ -131,7 +131,10 @@ Route::prefix('information')->group(function () {
 
 
 //Warehouse
-Route::apiResource('warehouse', WarehouseController::class)->middleware('crud:ombor.warehouse');
+Route::get('warehouse', [WarehouseController::class, 'index']);
+Route::get('warehouse/item-types', [WarehouseController::class, 'itemTypes']); // {id} dan OLDIN turishi shart
+Route::post('warehouse', [WarehouseController::class, 'store']);
+Route::get('warehouse/{id}', [WarehouseController::class, 'show']);
 
 //warehousetransfer
 Route::prefix('warehouse-transfer')->middleware('perm:ombor.warehouse.update')->group(function () {

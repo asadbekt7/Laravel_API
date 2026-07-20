@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\ItemType;
 use App\Http\Controllers\Controller;
 use App\Http\Filters\WarehouseFilter;
 use App\Http\Requests\Warehouse\StoreWarehouseRequest;
@@ -34,11 +35,25 @@ class WarehouseController extends Controller
         return response()->json($data);
     }
 
+    // GET /api/warehouse/item-types
+    public function itemTypes(): JsonResponse
+    {
+        return response()->json(['data' => ItemType::options()]);
+    }
+
     // POST /api/warehouse
     public function store(StoreWarehouseRequest $request): JsonResponse
     {
         $data        = $request->validated();
         $information = InformationModel::findOrFail($data['information_id']);
+
+        // Turga mos kelmaydigan maydonni tozalaymiz
+        $itemType = ItemType::from($data['item_type']);
+        if ($itemType === ItemType::ASOSIY_VOSITA) {
+            $data['statya'] = null;
+        } else {
+            $data['expiry_date'] = null;
+        }
 
         $warehouse = WarehouseModel::create([
             ...$data,
