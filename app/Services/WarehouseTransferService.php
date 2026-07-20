@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\InsufficientQuantityException;
-use App\Models\ItemsModel;
+use App\Models\BugalteriyaModel;
 use App\Models\WarehouseModel;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -11,12 +11,17 @@ use Illuminate\Support\Facades\DB;
 class WarehouseTransferService
 {
     /**
-     * Ombordan mahsulotlarni xodimga biriktirish (transfer).
+     * Ombordan mahsulotlarni xodimga biriktirish.
+     *
+     * O'ZGARISH: endi to'g'ridan-to'g'ri items ga emas,
+     * bugalteriya jadvaliga "pending" holatda yoziladi.
+     * Buxgalter turi bo'yicha maydonlarni to'ldirib tasdiqlagach,
+     * items ga o'tadi (BugalteriyaService::complete).
      *
      * @param array $staff    Tanlangan xodim (StaffApiService natijasidan snapshot)
      * @param array $products Tanlangan mahsulotlar
      *
-     * @return Collection<int, ItemModel>
+     * @return Collection<int, BugalteriyaModel>
      *
      * @throws InsufficientQuantityException
      */
@@ -47,7 +52,9 @@ class WarehouseTransferService
 
                 $warehouse->load('information.supplier');
 
-                $item = ItemsModel::create([
+                $entry = BugalteriyaModel::create([
+                    'warehouse_id'     => $warehouse->id,
+
                     'name'             => $warehouse->name,
                     'document_number'  => $warehouse->information?->contract_number,
                     'supplier_name'    => $warehouse->information?->supplier?->name,
@@ -58,7 +65,11 @@ class WarehouseTransferService
                     'unit_id'          => $warehouse->unit_id,
 
                     'quantity'         => $requested,
-                    'inventory_number' => $product['inventory_number'] ?? null,
+
+                    // Turi warehouse'dan keladi.
+                    // expiry_date / inventory_number / statya ni
+                    // KEYIN buxgalter to'ldiradi — hozircha bo'sh.
+                    'item_type'        => $warehouse->item_type,
 
                     'room_name'        => $product['room_name'] ?? null,
                     'building'         => $product['building'] ?? null,
@@ -71,8 +82,9 @@ class WarehouseTransferService
                     'department'       => $staff['department'] ?? null,
 
                     'condition'        => $product['condition'] ?? $warehouse->condition ?? 'new',
-                    'status'           => 'active',
                     'notes'            => $product['notes'] ?? null,
+
+                    'status'           => BugalteriyaModel::STATUS_PENDING,
                 ]);
 
                 // SQL darajasidagi shartli kamaytirish — ikkinchi qavat himoya
@@ -88,7 +100,7 @@ class WarehouseTransferService
                     );
                 }
 
-                $created->push($item->load('type', 'category', 'model', 'unit'));
+                $created->push($entry->load('type', 'category', 'model', 'unit'));
             }
 
             return $created;

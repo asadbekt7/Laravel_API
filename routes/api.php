@@ -16,7 +16,7 @@ use App\Http\Controllers\StaffNameController;
 use App\Http\Controllers\RoomNameController;
 use App\Http\Controllers\ContractAPI\InformationController;
 use App\Http\Controllers\Api\WarehouseTransferController;
-
+use App\Http\Controllers\BugalteriyaController;
 
 use App\Http\Controllers\Api\WarehouseController;
 
@@ -97,20 +97,14 @@ Route::prefix('rooms')->controller(RoomNameController::class)->group(function ()
     Route::get('/{roomName}/items','items');   // faqat DB statistika
 });
 
-//Information
-/*Route::prefix('informations')->controller(InformationController::class)->group(function () {
+//Bugalteriya
+Route::prefix('bugalteriya')->group(function () {
+    Route::get('/', [BugalteriyaController::class, 'index']);              // ro'yxat (?status=pending)
+    Route::get('/{bugalteriya}', [BugalteriyaController::class, 'show']);  // bitta yozuv
+    Route::post('/{bugalteriya}/complete', [BugalteriyaController::class, 'complete']); // yakunlash -> items
+    Route::post('/{bugalteriya}/cancel', [BugalteriyaController::class, 'cancel']);     // bekor qilish
+});
 
-    Route::get('/',              'index');
-    Route::get('/{information}', 'show');
-    Route::post('/',             'store');
-    Route::post('/bulk',         'bulkStore');
-    Route::put('/{information}', 'update');
-    Route::delete('/{information}', 'destroy');
-
-    // Soft delete
-    Route::post('/{id}/restore',      'restore');
-    Route::delete('/{id}/force',      'forceDelete');
-});*/
 Route::prefix('information')->group(function () {
     // Statik route'lar {information} parametridan OLDIN turishi shart
     Route::get('pending',  [InformationController::class, 'pending'])->middleware('perm:ombor.informations.view');
