@@ -12,22 +12,16 @@ class WarehouseTransferService
 {
     /**
      * Ombordan mahsulotlarni xodimga biriktirish.
-     *
-     * O'ZGARISH: endi to'g'ridan-to'g'ri items ga emas,
      * bugalteriya jadvaliga "pending" holatda yoziladi.
-     * Buxgalter turi bo'yicha maydonlarni to'ldirib tasdiqlagach,
-     * items ga o'tadi (BugalteriyaService::complete).
+     * item_type ni KEYIN buxgalter complete paytida tanlaydi.
      *
-     * @param array $staff    Tanlangan xodim (StaffApiService natijasidan snapshot)
-     * @param array $products Tanlangan mahsulotlar
-     *
+     * @param array $staff
+     * @param array $products
      * @return Collection<int, BugalteriyaModel>
-     *
      * @throws InsufficientQuantityException
      */
     public function handle(array $staff, array $products): Collection
     {
-        // Deadlock oldini olish: qulflash tartibi doim bir xil
         $products = collect($products)
             ->sortBy('warehouse_id')
             ->values()
@@ -66,10 +60,8 @@ class WarehouseTransferService
 
                     'quantity'         => $requested,
 
-                    // Turi warehouse'dan keladi.
-                    // expiry_date / inventory_number / statya ni
-                    // KEYIN buxgalter to'ldiradi — hozircha bo'sh.
-                    'item_type'        => $warehouse->item_type,
+                    // item_type / expiry_date / inventory_number / statya ni
+                    // buxgalter complete paytida to'ldiradi — hozircha bo'sh.
 
                     'room_name'        => $product['room_name'] ?? null,
                     'building'         => $product['building'] ?? null,
@@ -87,7 +79,6 @@ class WarehouseTransferService
                     'status'           => BugalteriyaModel::STATUS_PENDING,
                 ]);
 
-                // SQL darajasidagi shartli kamaytirish — ikkinchi qavat himoya
                 $affected = WarehouseModel::where('id', $warehouse->id)
                     ->where('quantity', '>=', $requested)
                     ->decrement('quantity', $requested);
