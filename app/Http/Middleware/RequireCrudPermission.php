@@ -10,7 +10,7 @@ class RequireCrudPermission
 {
     public function handle(Request $request, Closure $next, string $resource): Response
     {
-        if (!config('services.my_uwed.enabled') && !app()->isProduction()) {
+       /* if (!config('services.my_uwed.enabled') && !app()->isProduction()) {
             return $next($request);
         }
 
@@ -27,8 +27,8 @@ class RequireCrudPermission
             return $next($request);
         }
 
-        return response()->json(['message' => "Bu amal uchun ruxsatingiz yo'q."], 403);
+        return response()->json(['message' => "Bu amal uchun ruxsatingiz yo'q."], 403);*/
 
-//        return $next($request);
+        return $next($request);
     }
 }
