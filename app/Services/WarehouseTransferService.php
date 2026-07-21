@@ -12,16 +12,22 @@ class WarehouseTransferService
 {
     /**
      * Ombordan mahsulotlarni xodimga biriktirish.
-     * bugalteriya jadvaliga "pending" holatda yoziladi.
-     * item_type ni KEYIN buxgalter complete paytida tanlaydi.
      *
-     * @param array $staff
-     * @param array $products
+     * Endi to'g'ridan-to'g'ri items ga emas, bugalteriya jadvaliga
+     * "pending" holatda yoziladi. item_type / expiry_date / statya /
+     * inventory_number BU YERDA yozilmaydi — ularni keyin buxgalter
+     * o'zi tanlab/to'ldirib beradi (BugalteriyaService::complete).
+     *
+     * @param array $staff    Tanlangan xodim (snapshot)
+     * @param array $products Tanlangan mahsulotlar
+     *
      * @return Collection<int, BugalteriyaModel>
+     *
      * @throws InsufficientQuantityException
      */
     public function handle(array $staff, array $products): Collection
     {
+        // Deadlock oldini olish: qulflash tartibi doim bir xil
         $products = collect($products)
             ->sortBy('warehouse_id')
             ->values()
@@ -60,8 +66,8 @@ class WarehouseTransferService
 
                     'quantity'         => $requested,
 
-                    // item_type / expiry_date / inventory_number / statya ni
-                    // buxgalter complete paytida to'ldiradi — hozircha bo'sh.
+                    // item_type / expiry_date / inventory_number / statya
+                    // BU YERDA yo'q — buxgalter keyin to'ldiradi.
 
                     'room_name'        => $product['room_name'] ?? null,
                     'building'         => $product['building'] ?? null,
@@ -79,6 +85,7 @@ class WarehouseTransferService
                     'status'           => BugalteriyaModel::STATUS_PENDING,
                 ]);
 
+                // SQL darajasidagi shartli kamaytirish — ikkinchi qavat himoya
                 $affected = WarehouseModel::where('id', $warehouse->id)
                     ->where('quantity', '>=', $requested)
                     ->decrement('quantity', $requested);

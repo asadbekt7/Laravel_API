@@ -12,10 +12,12 @@ use Illuminate\Support\Facades\DB;
 class BugalteriyaService
 {
     /**
-     * Buxgalter turini tanlab, maydonlarni to'ldirib tasdiqlaydi:
+     * Buxgalter turni tanlab, yetmagan maydonlarni to'ldirib tasdiqlaydi:
      *  - asosiy vosita: expiry_date + inventory_number (majburiy)
      *  - rasxod:        statya (majburiy)
      * Yozuv items jadvaliga o'tadi.
+     *
+     * @param array $data ['item_type' => ..., 'expiry_date' => ..., ...]
      */
     public function complete(BugalteriyaModel $entry, array $data): ItemsModel
     {
@@ -25,14 +27,12 @@ class BugalteriyaService
             );
         }
 
-        // Tur buxgalterdan (so'rovdan) keladi
-        $itemType = $data['item_type'] ?? null;
+        // Turni buxgalter tanlaydi
+        $itemType = $data['item_type'] instanceof ItemType
+            ? $data['item_type']
+            : ItemType::from($data['item_type']);
 
-        if (empty($itemType)) {
-            throw new DomainException('Buxgalter turini tanlash majburiy.');
-        }
-
-        if ($itemType === ItemType::ASOSIY_VOSITA->value) {
+        if ($itemType === ItemType::ASOSIY_VOSITA) {
             $expiryDate      = $data['expiry_date'] ?? null;
             $inventoryNumber = $data['inventory_number'] ?? null;
             $statya          = null;
@@ -43,7 +43,7 @@ class BugalteriyaService
             if (empty($inventoryNumber)) {
                 throw new DomainException('Asosiy vosita uchun inventar raqami majburiy.');
             }
-        } else { // rasxod
+        } else { // RASXOD
             $statya          = $data['statya'] ?? null;
             $expiryDate      = null;
             $inventoryNumber = null;
@@ -59,9 +59,9 @@ class BugalteriyaService
                 'document_number'  => $entry->document_number,
                 'supplier_name'    => $entry->supplier_name,
 
-                'item_type'        => $itemType,      // so'rovdan kelgan tur
+                'item_type'        => $itemType,
                 'expiry_date'      => $expiryDate,
-                'expense_item'     => $statya,
+                'statya'           => $statya,
 
                 'type_id'          => $entry->type_id,
                 'category_id'      => $entry->category_id,
@@ -87,7 +87,7 @@ class BugalteriyaService
             ]);
 
             $entry->update([
-                'item_type'        => $itemType,      // bugalteriya yozuviga ham yozamiz
+                'item_type'        => $itemType,
                 'expiry_date'      => $expiryDate,
                 'inventory_number' => $inventoryNumber,
                 'statya'           => $statya,

@@ -13,7 +13,7 @@ class BugalteriyaModel extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
-        'item_type'    => ItemType::class,
+        'item_type'    => ItemType::class, // null bo'lishi mumkin (buxgalter tanlaguncha)
         'expiry_date'  => 'date',
         'completed_at' => 'datetime',
     ];

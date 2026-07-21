@@ -40,7 +40,7 @@ class BugalteriyaController extends Controller
     }
 
     /**
-     * Buxgalter maydonlarni to'ldirib tasdiqlaydi — items ga saqlanadi.
+     * Buxgalter turni tanlab, maydonlarni to'ldirib tasdiqlaydi — items ga saqlanadi.
      */
     public function complete(
         CompleteBugalteriyaRequest $request,

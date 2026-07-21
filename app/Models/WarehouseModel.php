@@ -16,9 +16,6 @@ class WarehouseModel extends Model
         'information_id',
         'assignee_id',
         'name',
-        'item_type',
-        'expiry_date',
-        'statya',
         'type_id',
         'category_id',
         'model_id',
@@ -33,8 +30,6 @@ class WarehouseModel extends Model
         'quantity'      => 'integer',
         'staff_id'      => 'integer',
         'product_price' => 'decimal:2',
-        'item_type'     => ItemType::class,
-        'expiry_date'   => 'date',
     ];
 
     public function scopeFilter(Builder $query, QueryFilter $filter): Builder
