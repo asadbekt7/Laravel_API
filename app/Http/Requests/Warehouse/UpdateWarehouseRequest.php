@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests\Warehouse;
 
-use App\Enums\ItemType;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateWarehouseRequest extends FormRequest
 {
@@ -18,18 +16,8 @@ class UpdateWarehouseRequest extends FormRequest
         return [
             'information_id' => ['nullable', 'exists:information,id'],
             'name'           => ['sometimes', 'string', 'max:255'],
-            'item_type'      => ['sometimes', Rule::enum(ItemType::class)],
-            'expiry_date'    => [
-                'required_if:item_type,' . ItemType::ASOSIY_VOSITA->value,
-                'nullable',
-                'date',
-            ],
-            'statya' => [
-                'required_if:item_type,' . ItemType::RASXOD->value,
-                'nullable',
-                'string',
-                'max:255',
-            ],
+            // item_type / expiry_date / statya OLIB TASHLANDI —
+            // ular warehouse'da yo'q, buxgalter keyin to'ldiradi.
             'type_id'        => ['sometimes', 'exists:types,id'],
             'category_id'    => ['sometimes', 'exists:categories,id'],
             'model_id'       => ['sometimes', 'exists:models,id'],
