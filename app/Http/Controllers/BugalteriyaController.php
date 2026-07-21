@@ -15,10 +15,6 @@ class BugalteriyaController extends Controller
         private readonly BugalteriyaService $service,
     ) {}
 
-    /**
-     * Bugalteriya menyusi — ombordan chiqqan yozuvlar ro'yxati.
-     * ?status=pending|completed|cancelled (default: pending)
-     */
     public function index(Request $request): JsonResponse
     {
         $entries = BugalteriyaModel::with('type', 'category', 'model', 'unit')
@@ -39,28 +35,22 @@ class BugalteriyaController extends Controller
         );
     }
 
-    /**
-     * Buxgalter turni tanlab, maydonlarni to'ldirib tasdiqlaydi — items ga saqlanadi.
-     */
     public function complete(
         CompleteBugalteriyaRequest $request,
         BugalteriyaModel $bugalteriya,
     ): JsonResponse {
         try {
-            $item = $this->service->complete($bugalteriya, $request->validated());
+            $items = $this->service->complete($bugalteriya, $request->validated());
         } catch (DomainException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
         return response()->json([
-            'message' => 'Yozuv muvaffaqiyatli yakunlandi va items ga saqlandi.',
-            'item'    => $item,
+            'message' => "{$items->count()} ta yozuv items ga saqlandi.",
+            'data'    => $items,
         ]);
     }
 
-    /**
-     * Bekor qilish — miqdor omborga qaytadi.
-     */
     public function cancel(BugalteriyaModel $bugalteriya): JsonResponse
     {
         try {
