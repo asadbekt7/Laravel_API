@@ -139,6 +139,10 @@ Route::prefix('information')->group(function () {
 Route::prefix('warehouse')->group(function () {
     Route::get('/',           [WarehouseController::class, 'index'])->middleware('perm:ombor.warehouse.view');
     Route::get('/item-types', [WarehouseController::class, 'itemTypes'])->middleware('perm:ombor.warehouse.view'); // {id} dan OLDIN turishi shart
+    // stats for manage todo middleware larni yoqib qo'yish kerak, loyiha topshirilgandan keyin
+    Route::get('/stats/categories', [WarehouseController::class, 'statsCategories']); //->middleware('perm:ombor.warehouse.view');
+    Route::get('/stats/models',     [WarehouseController::class, 'statsModels']); //->middleware('perm:ombor.warehouse.view');
+
     Route::post('/',          [WarehouseController::class, 'store'])->middleware('perm:ombor.warehouse.create');
     Route::get('/{id}',       [WarehouseController::class, 'show'])->middleware('perm:ombor.warehouse.view');
 });

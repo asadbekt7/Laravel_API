@@ -5,9 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Filters\WarehouseFilter;
 use App\Http\Requests\Warehouse\StoreWarehouseRequest;
+use App\Models\CategoryModel;
 use App\Models\InformationModel;
+use App\Models\TypeModel;
 use App\Models\WarehouseModel;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class WarehouseController extends Controller
 {
@@ -67,5 +71,79 @@ class WarehouseController extends Controller
         $warehouse = WarehouseModel::with($this->relations)->findOrFail($id);
 
         return response()->json(['data' => $warehouse]);
+    }
+
+    public function statsCategories(Request $request): JsonResponse
+    {
+        $typeId = (int) ($request->query('type_id') ?: 2);
+
+        $type = TypeModel::find($typeId);
+        if (! $type) {
+            return response()->json(['message' => 'Type topilmadi'], 404);
+        }
+
+        $rows = WarehouseModel::query()
+            ->join('categories', 'categories.id', '=', 'warehouse.category_id')
+            ->where('warehouse.type_id', $typeId)
+            ->where('warehouse.quantity', '>', 0)
+            ->groupBy('warehouse.category_id', 'categories.name')
+            ->orderBy('categories.name')
+            ->get([
+                'warehouse.category_id as id',
+                'categories.name as name',
+                DB::raw('SUM(warehouse.quantity) as quantity'),
+            ]);
+
+        $categories = $rows->map(fn ($r) => [
+            'id'       => (int) $r->id,
+            'name'     => $r->name,
+            'quantity' => (int) $r->quantity,
+        ])->values();
+
+        return response()->json([
+            'type'           => ['id' => $type->id, 'name' => $type->name],
+            'total_quantity' => (int) $categories->sum('quantity'),
+            'categories'     => $categories,
+        ]);
+    }
+
+    public function statsModels(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'category_id' => ['required', 'integer'],
+        ]);
+        $categoryId = (int) $validated['category_id'];
+
+        $category = CategoryModel::with('type')->find($categoryId);
+        if (! $category) {
+            return response()->json(['message' => 'Kategoriya topilmadi'], 404);
+        }
+
+        $rows = WarehouseModel::query()
+            ->join('models', 'models.id', '=', 'warehouse.model_id')
+            ->where('warehouse.category_id', $categoryId)
+            ->where('warehouse.quantity', '>', 0)
+            ->groupBy('warehouse.model_id', 'models.name')
+            ->orderBy('models.name')
+            ->get([
+                'warehouse.model_id as id',
+                'models.name as name',
+                DB::raw('SUM(warehouse.quantity) as quantity'),
+            ]);
+
+        $models = $rows->map(fn ($r) => [
+            'id'       => (int) $r->id,
+            'name'     => $r->name,
+            'quantity' => (int) $r->quantity,
+        ])->values();
+
+        return response()->json([
+            'type'           => $category->type
+                ? ['id' => $category->type->id, 'name' => $category->type->name]
+                : null,
+            'category'       => ['id' => $category->id, 'name' => $category->name],
+            'total_quantity' => (int) $models->sum('quantity'),
+            'models'         => $models,
+        ]);
     }
 }
