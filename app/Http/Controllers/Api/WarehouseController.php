@@ -91,18 +91,21 @@ class WarehouseController extends Controller
             ->get([
                 'warehouse.category_id as id',
                 'categories.name as name',
-                DB::raw('SUM(warehouse.quantity) as quantity'),
+                DB::raw('COUNT(DISTINCT warehouse.model_id) as model_count'),
+                DB::raw('SUM(warehouse.quantity) as total_quantity'),
             ]);
 
         $categories = $rows->map(fn ($r) => [
-            'id'       => (int) $r->id,
-            'name'     => $r->name,
-            'quantity' => (int) $r->quantity,
+            'id'             => (int) $r->id,
+            'name'           => $r->name,
+            'model_count'    => (int) $r->model_count,
+            'total_quantity' => (int) $r->total_quantity,
         ])->values();
 
         return response()->json([
             'type'           => ['id' => $type->id, 'name' => $type->name],
-            'total_quantity' => (int) $categories->sum('quantity'),
+            'category_count' => $categories->count(),
+            'total_quantity' => (int) $categories->sum('total_quantity'),
             'categories'     => $categories,
         ]);
     }
@@ -128,13 +131,13 @@ class WarehouseController extends Controller
             ->get([
                 'warehouse.model_id as id',
                 'models.name as name',
-                DB::raw('SUM(warehouse.quantity) as quantity'),
+                DB::raw('SUM(warehouse.quantity) as total_quantity'),
             ]);
 
         $models = $rows->map(fn ($r) => [
-            'id'       => (int) $r->id,
-            'name'     => $r->name,
-            'quantity' => (int) $r->quantity,
+            'id'             => (int) $r->id,
+            'name'           => $r->name,
+            'total_quantity' => (int) $r->total_quantity,
         ])->values();
 
         return response()->json([
@@ -142,7 +145,8 @@ class WarehouseController extends Controller
                 ? ['id' => $category->type->id, 'name' => $category->type->name]
                 : null,
             'category'       => ['id' => $category->id, 'name' => $category->name],
-            'total_quantity' => (int) $models->sum('quantity'),
+            'model_count'    => $models->count(),
+            'total_quantity' => (int) $models->sum('total_quantity'),
             'models'         => $models,
         ]);
     }
