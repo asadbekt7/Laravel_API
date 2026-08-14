@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\WarehouseTransferController;
 use App\Http\Controllers\BugalteriyaController;
 use App\Http\Controllers\Api\WarehouseController;
 use App\Http\Controllers\Api\TransferController;
+use App\Http\Controllers\Api\WarehouseBatchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -156,4 +157,17 @@ Route::prefix('warehouse-transfer')->middleware('perm:ombor.warehouse.update')->
 //Transfer
 Route::prefix('transfers')->middleware('perm:ombor.transfers.create')->group(function () {
     Route::post('/', [TransferController::class, 'store']);
+});
+//WarehouseBatch
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('warehouse-batches', [WarehouseBatchController::class, 'index']);
+    Route::get('warehouse-batches/{batch}', [WarehouseBatchController::class, 'show']);
+    Route::post('warehouse-batches', [WarehouseBatchController::class, 'store']);
+    Route::post('warehouse-batches/{batch}/accept', [WarehouseBatchController::class, 'accept']);   // buxgalter
+    Route::post('warehouse-batches/{batch}/approve', [WarehouseBatchController::class, 'approve']);
+    Route::post('warehouse-batches/{batch}/reject', [WarehouseBatchController::class, 'reject']);
+
+    Route::get('warehouse-batches/{batch}/pdf', [WarehouseBatchController::class, 'downloadPdf'])
+        ->middleware('signed')
+        ->name('warehouse-batches.pdf');
 });
