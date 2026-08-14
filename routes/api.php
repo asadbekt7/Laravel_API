@@ -166,4 +166,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('warehouse-batches/{batch}/accept', [WarehouseBatchController::class, 'accept']);   // buxgalter
     Route::post('warehouse-batches/{batch}/approve', [WarehouseBatchController::class, 'approve']);
     Route::post('warehouse-batches/{batch}/reject', [WarehouseBatchController::class, 'reject']);
+
+    Route::get('warehouse-batches/{batch}/pdf', [WarehouseBatchController::class, 'downloadPdf'])
+        ->middleware('signed')
+        ->name('warehouse-batches.pdf');
 });

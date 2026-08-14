@@ -1,5 +1,5 @@
 <?php
-// app/Http/Controllers/Api/WarehouseBatchController.php
+
 namespace App\Http\Controllers\Api;
 
 use App\DTOs\CreateWarehouseBatchDTO;
@@ -17,9 +17,17 @@ use App\Services\WarehouseBatch\WarehouseBatchApprovalService;
 use App\Services\WarehouseBatch\WarehouseBatchService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 
 class WarehouseBatchController extends Controller
 {
+    /**
+     * Batchlar ro'yxati — /documents oynasiga o'xshash umumiy ko'rinish.
+     *
+     * ?assigned_to_me=1 — faqat auth foydalanuvchining navbati "active"
+     * bo'lgan batchlarni qaytaradi (buxgalter/tasdiqlovchi inbox'i sifatida ishlatiladi).
+     */
     public function index(Request $request): AnonymousResourceCollection
     {
         $query = WarehouseBatch::query()->with(['staff', 'signers.user']);
@@ -30,16 +38,27 @@ class WarehouseBatchController extends Controller
                 ->where('status', \App\Enums\SignerLevelStatus::Active));
         }
 
-        return WarehouseBatchResource::collection($query->latest()->paginate(20));
+        $batches = $query->latest()->paginate(20);
+
+        return WarehouseBatchResource::collection($batches);
     }
 
+    /**
+     * Bitta batchning to'liq tafsiloti — mahsulotlar va imzolovchilar bilan.
+     */
     public function show(WarehouseBatch $batch): WarehouseBatchResource
     {
         $this->authorize('view', $batch);
 
-        return new WarehouseBatchResource($batch->load(['items.warehouse', 'signers.user', 'staff']));
+        return new WarehouseBatchResource(
+            $batch->load(['items.warehouse', 'signers.user', 'staff'])
+        );
     }
 
+    /**
+     * Yangi batch yaratish — ombordan mahsulot tanlanadi, xodimga biriktiriladi,
+     * imzolovchilar zanjiri (1-daraja = buxgalter) shakllantiriladi.
+     */
     public function store(StoreWarehouseBatchRequest $request, WarehouseBatchService $service): WarehouseBatchResource
     {
         try {
@@ -52,8 +71,15 @@ class WarehouseBatchController extends Controller
         return new WarehouseBatchResource($batch);
     }
 
-    public function accept(AcceptWarehouseBatchRequest $request, WarehouseBatch $batch, WarehouseBatchAccountantService $service): WarehouseBatchResource
-    {
+    /**
+     * Buxgalter — "Qabul qilish": debit/kredit/talab_qilingan to'ldiriladi,
+     * so'ng navbat avtomatik keyingi tasdiqlovchiga o'tadi.
+     */
+    public function accept(
+        AcceptWarehouseBatchRequest $request,
+        WarehouseBatch $batch,
+        WarehouseBatchAccountantService $service
+    ): WarehouseBatchResource {
         try {
             $batch = $service->accept($batch, $request->user(), $request->validated('entries'));
         } catch (BatchSignException $e) {
@@ -63,8 +89,14 @@ class WarehouseBatchController extends Controller
         return new WarehouseBatchResource($batch);
     }
 
-    public function approve(ApproveWarehouseBatchRequest $request, WarehouseBatch $batch, WarehouseBatchApprovalService $service): WarehouseBatchResource
-    {
+    /**
+     * 2-va undan keyingi darajadagi tasdiqlovchilar — oddiy tasdiqlash.
+     */
+    public function approve(
+        ApproveWarehouseBatchRequest $request,
+        WarehouseBatch $batch,
+        WarehouseBatchApprovalService $service
+    ): WarehouseBatchResource {
         try {
             $batch = $service->approve($batch, $request->user(), $request->validated('comment'));
         } catch (BatchSignException $e) {
@@ -74,8 +106,14 @@ class WarehouseBatchController extends Controller
         return new WarehouseBatchResource($batch);
     }
 
-    public function reject(RejectWarehouseBatchRequest $request, WarehouseBatch $batch, WarehouseBatchApprovalService $service): WarehouseBatchResource
-    {
+    /**
+     * Rad etish — zanjir shu yerda to'xtaydi, qolgan darajalar ham "rejected" bo'ladi.
+     */
+    public function reject(
+        RejectWarehouseBatchRequest $request,
+        WarehouseBatch $batch,
+        WarehouseBatchApprovalService $service
+    ): WarehouseBatchResource {
         try {
             $batch = $service->reject($batch, $request->user(), $request->validated('comment'));
         } catch (BatchSignException $e) {
@@ -83,5 +121,25 @@ class WarehouseBatchController extends Controller
         }
 
         return new WarehouseBatchResource($batch);
+    }
+
+    /**
+     * Generatsiya qilingan PDF'ni xavfsiz yuklab olish.
+     *
+     * "local" disk temporaryUrl()ni qo'llab-quvvatlamagani uchun,
+     * signed route + shu endpoint orqali fayl stream qilinadi.
+     * Route "signed" middleware bilan himoyalangan (routes/api.php'ga qarang).
+     */
+    public function downloadPdf(WarehouseBatch $batch): Response
+    {
+        $this->authorize('view', $batch);
+
+        abort_unless(
+            $batch->pdf_path && Storage::disk('local')->exists($batch->pdf_path),
+            404,
+            'Ushbu batch uchun hali PDF generatsiya qilinmagan.'
+        );
+
+        return Storage::disk('local')->response($batch->pdf_path);
     }
 }

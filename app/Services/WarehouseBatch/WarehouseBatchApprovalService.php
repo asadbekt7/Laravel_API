@@ -18,7 +18,7 @@ class WarehouseBatchApprovalService
     public function approve(WarehouseBatch $batch, User $user, ?string $comment): WarehouseBatch
     {
         return DB::transaction(function () use ($batch, $user, $comment) {
-            $active = $this->lockActiveSigner($batch, $user);
+            [$lockedBatch, $active] = $this->lockActiveSigner($batch, $user);
 
             $active->update([
                 'status' => SignerLevelStatus::Approved,
@@ -26,16 +26,16 @@ class WarehouseBatchApprovalService
                 'responded_at' => now(),
             ]);
 
-            $this->workflowService->advance($active->batch, completedLevel: $active->level);
+            $this->workflowService->advance($lockedBatch, completedLevel: $active->level);
 
-            return $batch->fresh(['items.warehouse', 'signers.user']);
+            return $lockedBatch->fresh(['items.warehouse', 'signers.user']);
         });
     }
 
     public function reject(WarehouseBatch $batch, User $user, string $comment): WarehouseBatch
     {
         return DB::transaction(function () use ($batch, $user, $comment) {
-            $active = $this->lockActiveSigner($batch, $user);
+            [$lockedBatch, $active] = $this->lockActiveSigner($batch, $user);
 
             $active->update([
                 'status' => SignerLevelStatus::Rejected,
@@ -43,17 +43,18 @@ class WarehouseBatchApprovalService
                 'responded_at' => now(),
             ]);
 
-            $this->workflowService->reject($active->batch);
+            $this->workflowService->reject($lockedBatch);
 
-            return $batch->fresh(['items.warehouse', 'signers.user']);
+            return $lockedBatch->fresh(['items.warehouse', 'signers.user']);
         });
     }
 
-    private function lockActiveSigner(WarehouseBatch $batch, User $user): WarehouseBatchSigner
+    /** @return array{0: WarehouseBatch, 1: WarehouseBatchSigner} */
+    private function lockActiveSigner(WarehouseBatch $batch, User $user): array
     {
-        $batch = WarehouseBatch::whereKey($batch->id)->lockForUpdate()->firstOrFail();
+        $lockedBatch = WarehouseBatch::whereKey($batch->id)->lockForUpdate()->firstOrFail();
 
-        $active = $batch->signers()
+        $active = $lockedBatch->signers()
             ->where('status', SignerLevelStatus::Active)
             ->where('user_id', $user->id)
             ->first();
@@ -62,6 +63,6 @@ class WarehouseBatchApprovalService
             throw new BatchSignException('Sizning navbatingiz emas yoki batch yopilgan.');
         }
 
-        return $active;
+        return [$lockedBatch, $active];
     }
 }

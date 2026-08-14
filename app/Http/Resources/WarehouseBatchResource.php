@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\URL;
 
 class WarehouseBatchResource extends JsonResource
 {
@@ -14,7 +15,9 @@ class WarehouseBatchResource extends JsonResource
             'batch_number' => $this->batch_number,
             'status' => $this->status,
             'staff' => $this->whenLoaded('staff', fn () => ['id' => $this->staff->id, 'name' => $this->staff->name]),
-            'pdf_url' => $this->pdf_path ? \Storage::disk('local')->temporaryUrl($this->pdf_path, now()->addMinutes(10)) : null,
+            'pdf_url' => $this->pdf_path
+                ? URL::temporarySignedRoute('warehouse-batches.pdf', now()->addMinutes(10), ['batch' => $this->id])
+                : null,
             'items' => $this->whenLoaded('items', fn () => $this->items->map(fn ($i) => [
                 'id' => $i->id,
                 'warehouse_name' => $i->warehouse->name,
