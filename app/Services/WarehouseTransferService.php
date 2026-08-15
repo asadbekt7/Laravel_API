@@ -18,19 +18,19 @@ class WarehouseTransferService
     /**
      * @param array $staff    Tanlangan xodim (snapshot)
      * @param array $products Tanlangan mahsulotlar
-     * @param int   $batchId  "POST /warehouse-batches" orqali oldindan yaratilgan batch ID'si
+     * @param string $batchId  Oldindan yaratilgan partiyaning batch_number qiymati
      *
      * @return Collection<int, BugalteriyaModel>
      *
      * @throws InsufficientQuantityException
      * @throws DomainException
      */
-    public function handle(array $staff, array $products, int $batchId): Collection
+    public function handle(array $staff, array $products, string $batchId): Collection
     {
         $products = collect($products)->sortBy('warehouse_id')->values()->all();
 
         return DB::transaction(function () use ($staff, $products, $batchId) {
-            $batch = WarehouseBatch::lockForUpdate()->findOrFail($batchId);
+            $batch = WarehouseBatch::where('batch_number', $batchId)->lockForUpdate()->firstOrFail();
 
             if ($batch->status !== BatchStatus::InProgress) {
                 throw new DomainException('Bu batch allaqachon yopilgan yoki rad etilgan — mahsulot biriktirib bo\'lmaydi.');

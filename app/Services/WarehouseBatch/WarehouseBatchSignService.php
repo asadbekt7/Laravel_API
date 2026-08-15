@@ -14,6 +14,7 @@ class WarehouseBatchSignService
 {
     public function __construct(
         private readonly BatchWorkflowService $workflowService,
+        private readonly BatchPdfService $pdf,
     ) {}
 
     /** MENYU 2 — buxgalter debit/kredit/talab_qilingan to'ldirib, 1-darajani tasdiqlaydi.
@@ -22,7 +23,7 @@ class WarehouseBatchSignService
      */
     public function signAsAccountant(WarehouseBatch $batch, User $accountant, array $entries): WarehouseBatch
     {
-        return DB::transaction(function () use ($batch, $accountant, $entries) {
+        $batch = DB::transaction(function () use ($batch, $accountant, $entries) {
             $batch = WarehouseBatch::whereKey($batch->id)->lockForUpdate()->firstOrFail();
 
             $active = $batch->signers()
@@ -80,5 +81,9 @@ class WarehouseBatchSignService
 
             return $batch->fresh(['entries', 'signers.user']);
         });
+
+        $this->pdf->generate($batch);
+
+        return $batch;
     }
 }

@@ -14,6 +14,10 @@ class MyUwedAuth
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if ($request->hasValidSignature()) {
+            return $next($request);
+        }
+
         $enabled = (bool) config('services.my_uwed.enabled');
 
         if (! $enabled && ! app()->isProduction()) {

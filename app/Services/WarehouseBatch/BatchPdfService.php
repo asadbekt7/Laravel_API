@@ -17,9 +17,8 @@ class BatchPdfService
 
         DB::afterCommit(function () use ($batchId) {
             $batch = WarehouseBatch::with([
-                'items.warehouse.unit',
+                'entries.warehouse.unit',
                 'signers.user',
-                'staff',
                 'createdBy',
             ])->find($batchId);
 
@@ -34,7 +33,7 @@ class BatchPdfService
                     path: "batches/{$batch->id}.pdf",
                 );
 
-                $batch->update(['pdf_path' => $path]);
+                $batch->update(['file_path' => $path]);
             } catch (\Throwable $e) {
                 Log::error('Batch PDF generatsiya xatosi ['.$batch->batch_number.']: '.$e->getMessage());
             }

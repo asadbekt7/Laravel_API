@@ -5,10 +5,10 @@
     $months = [1 => 'январ', 2 => 'феврал', 3 => 'март', 4 => 'апрел', 5 => 'май', 6 => 'июн',
                7 => 'июл', 8 => 'август', 9 => 'сентябр', 10 => 'октябр', 11 => 'ноябр', 12 => 'декабр'];
     $docDate = $batch->completed_at ?? $batch->created_at;
+    $recipient = $batch->entries->first();
 
-    // Jami summa (нархи × берилган)
     $total = 0;
-    foreach ($batch->items as $it) {
+    foreach ($batch->entries as $it) {
         $total += (float) ($it->warehouse->product_price ?? 0) * (int) $it->quantity;
     }
 
@@ -81,11 +81,11 @@
     <table class="meta">
         <tr>
             <td class="lbl">Ташкилот - олувчининг номи</td>
-            <td class="val">{{ $batch->staff->full_name ?? $batch->staff->name ?? '' }}</td>
+            <td class="val">{{ $recipient->full_name ?? '' }}</td>
         </tr>
         <tr>
             <td class="lbl">Таркибий бўлими</td>
-            <td class="val">&nbsp;</td>
+            <td class="val">{{ $recipient->department ?? '' }}&nbsp;</td>
         </tr>
         <tr>
             <td class="lbl">Ташкилот (жўнатувчи)</td>
@@ -117,14 +117,14 @@
             </tr>
         </thead>
         <tbody>
-            @foreach ($batch->items as $i => $item)
+            @foreach ($batch->entries as $i => $item)
                 @php
                     $price = (float) ($item->warehouse->product_price ?? 0);
                     $line  = $price * (int) $item->quantity;
                 @endphp
                 <tr>
                     <td class="c">{{ $i + 1 }}</td>
-                    <td>{{ $item->warehouse->name ?? '—' }}</td>
+                    <td>{{ $item->name ?? $item->warehouse->name ?? '—' }}</td>
                     <td class="c">{{ $item->warehouse->unit->name ?? '' }}</td>
                     <td class="c">{{ $item->debit ?? '' }}</td>
                     <td class="c">{{ $item->kredit ?? '' }}</td>

@@ -13,24 +13,47 @@ use App\Models\WarehouseBatch;
 use App\Services\WarehouseBatch\WarehouseBatchApprovalService;
 use App\Services\WarehouseBatch\WarehouseBatchCreationService;
 use App\Services\WarehouseBatch\WarehouseBatchSignService;
+use App\Enums\SignerLevelStatus;
 use DomainException;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
 
 class WarehouseBatchController extends Controller
 {
+    public function index(Request $request)
+    {
+        $query = WarehouseBatch::with(['entries', 'signers.user', 'createdBy'])
+            ->latest();
+
+        if ($request->boolean('assigned_to_me') && $request->user()) {
+            $userId = $request->user()->id;
+            $query->whereHas('signers', fn ($q) => $q
+                ->where('user_id', $userId)
+                ->where('status', SignerLevelStatus::Active));
+        }
+
+        return WarehouseBatchResource::collection(
+            $query->paginate((int) $request->input('per_page', 20))
+        );
+    }
+
     public function store(StoreWarehouseBatchRequest $request, WarehouseBatchCreationService $service)
     {
         try {
             $batch = $service->create(
                 batchNumber: $request->validated('batch_number'),
                 createdBy: $request->user()->id,
-                signerIds: $request->validated('signer_ids'),
+                signers: $request->validated('signers'),
             );
         } catch (QueryException $e) {
-            abort(422, 'Bu batch raqami allaqachon mavjud.');
+            if ($e->getCode() === '23505') {
+                abort(422, 'Bu batch raqami allaqachon mavjud.');
+            }
+
+            abort(500, 'Partiya yaratishda xatolik: '.$e->getMessage());
         }
 
-        return new WarehouseBatchResource($batch);
+        return new WarehouseBatchResource($batch->load('createdBy'));
     }
 
     public function show(WarehouseBatch $batch): WarehouseBatchResource

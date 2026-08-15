@@ -9,19 +9,35 @@ use App\Http\Resources\BugalteriyaResource;
 use App\Models\BugalteriyaModel;
 use App\Services\BugalteriyaService;
 use DomainException;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class BugalteriyaController extends Controller
 {
     /** MENYU 1 — ombordan kelgan, tasnif kutayotgan yozuvlar */
-    public function awaitingClassification(): AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
-        $entries = BugalteriyaModel::awaitingClassification()
-            ->with(['warehouse', 'type', 'category', 'model', 'unit'])
+        $status = $request->input('status', BugalteriyaModel::STATUS_PENDING);
+        $allowed = [
+            BugalteriyaModel::STATUS_PENDING,
+            BugalteriyaModel::STATUS_COMPLETED,
+            BugalteriyaModel::STATUS_CANCELLED,
+        ];
+
+        $entries = BugalteriyaModel::query()
+            ->when(in_array($status, $allowed, true), fn ($q) => $q->where('status', $status))
+            ->with(['warehouse', 'type', 'category', 'model', 'unit', 'batch'])
             ->latest()
-            ->paginate(20);
+            ->paginate((int) $request->input('per_page', 20));
 
         return BugalteriyaResource::collection($entries);
+    }
+
+    public function show(BugalteriyaModel $bugalteriya): BugalteriyaResource
+    {
+        return new BugalteriyaResource(
+            $bugalteriya->load(['warehouse', 'type', 'category', 'model', 'unit', 'batch'])
+        );
     }
 
     public function complete(CompleteBugalteriyaRequest $request, BugalteriyaModel $bugalteriya, BugalteriyaService $service)

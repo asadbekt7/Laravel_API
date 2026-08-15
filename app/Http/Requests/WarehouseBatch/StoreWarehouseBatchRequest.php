@@ -1,5 +1,4 @@
 <?php
-// app/Http/Requests/WarehouseBatch/StoreWarehouseBatchRequest.php
 
 namespace App\Http\Requests\WarehouseBatch;
 
@@ -17,8 +16,9 @@ class StoreWarehouseBatchRequest extends FormRequest
         return [
             'batch_number' => ['required', 'string', 'max:50', 'unique:warehouse_batches,batch_number'],
 
-            'signer_ids' => ['required', 'array', 'min:1'],
-            'signer_ids.*' => ['integer', 'distinct', 'exists:users,id'],
+            'signers' => ['required', 'array', 'min:1'],
+            'signers.*.staff_id' => ['required', 'integer', 'distinct'],
+            'signers.*.full_name' => ['required', 'string', 'max:255'],
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\ItemType;
 use App\Http\Controllers\Controller;
 use App\Http\Filters\WarehouseFilter;
 use App\Http\Requests\Warehouse\StoreWarehouseRequest;
@@ -72,6 +73,11 @@ class WarehouseController extends Controller
         $warehouse = WarehouseModel::with($this->relations)->findOrFail($id);
 
         return response()->json(['data' => $warehouse]);
+    }
+
+    public function itemTypes(): JsonResponse
+    {
+        return response()->json(['data' => ItemType::options()]);
     }
 
     public function statsCategories(Request $request): JsonResponse

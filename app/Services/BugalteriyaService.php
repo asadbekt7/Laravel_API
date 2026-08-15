@@ -99,7 +99,7 @@ class BugalteriyaService
             'supplier_name' => $entry->supplier_name,
             'item_type' => $overrides['item_type'],
             'expiry_date' => $overrides['expiry_date'],
-            'statya' => $overrides['statya'],
+            'expense_item' => $overrides['statya'],
             'type_id' => $entry->type_id,
             'category_id' => $entry->category_id,
             'model_id' => $entry->model_id,

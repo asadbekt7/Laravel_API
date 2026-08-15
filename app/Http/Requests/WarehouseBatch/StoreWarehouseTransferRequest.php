@@ -15,7 +15,7 @@ class StoreWarehouseTransferRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'batch_id' => ['required', 'integer', 'exists:warehouse_batches,id'],
+            'batch_id' => ['required', 'string', 'exists:warehouse_batches,batch_number'],
 
             'staff.last_name' => ['required', 'string', 'max:255'],
             'staff.first_name' => ['required', 'string', 'max:255'],

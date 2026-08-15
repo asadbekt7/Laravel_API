@@ -8,6 +8,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -40,6 +41,23 @@ class User extends Authenticatable
         $user->save();
 
         return $user->withSsoClaims($claims);
+    }
+
+    public static function resolveFromStaff(int|string $staffId, string $fullName): self
+    {
+        $user = static::firstOrNew(['staff_id' => $staffId]);
+
+        $user->full_name = $fullName;
+        $user->name = $fullName;
+
+        if (! $user->exists) {
+            $user->email = "sso-staff-{$staffId}@uwed.local";
+            $user->password = Str::random(40);
+        }
+
+        $user->save();
+
+        return $user;
     }
 
     public function withSsoClaims(MyUwedClaims $claims): self

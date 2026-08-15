@@ -81,14 +81,13 @@ Route::prefix('uzasbo-imports')->group(function () {
 Route::prefix('items')->middleware('crud:ombor.items')->group(function () {
     Route::get('/',      [ItemsController::class, 'index']);
     Route::get('/{id}',  [ItemsController::class, 'show']);
-    // Eslatma: oldin 'items/{id}' deb yozilgan edi — bu /items/items/{id} bo'lib qolardi. To'g'irlandi:
     Route::put('/{id}',   [ItemsController::class, 'update']);
     Route::patch('/{id}', [ItemsController::class, 'update']);
 });
 
 //Staff Search
-Route::get('/staff/search', [StaffController::class, 'search'])
-    ->middleware('perm:ombor.staff.view');
+Route::get('/staff/search', [StaffController::class, 'search']);
+    // todo ->middleware('perm:ombor.staff.view');
 
 //Supplier
 Route::apiResource('suppliers', SupplierController::class)
@@ -107,22 +106,21 @@ Route::prefix('rooms')
     ->controller(RoomNameController::class)
     ->middleware('perm:ombor.rooms.view')
     ->group(function () {
-        Route::get('/',                 'index');   // ?search=... bilan filter
-        Route::get('/{roomName}',       'show');    // API + DB birlashgan
-        Route::get('/{roomName}/items', 'items');   // faqat DB statistika
+        Route::get('/',                 'index');
+        Route::get('/{roomName}',       'show');
+        Route::get('/{roomName}/items', 'items');
     });
 
 //Bugalteriya
 Route::prefix('bugalteriya')->group(function () {
-    Route::get('/',              [BugalteriyaController::class, 'index'])->middleware('perm:ombor.bugalteriya.view');    // ro'yxat (?status=pending)
-    Route::get('/{bugalteriya}', [BugalteriyaController::class, 'show'])->middleware('perm:ombor.bugalteriya.view');     // bitta yozuv
-    Route::post('/{bugalteriya}/complete', [BugalteriyaController::class, 'complete'])->middleware('perm:ombor.bugalteriya.complete'); // yakunlash -> items
-    Route::post('/{bugalteriya}/cancel',   [BugalteriyaController::class, 'cancel'])->middleware('perm:ombor.bugalteriya.cancel');     // bekor qilish
+    Route::get('/',              [BugalteriyaController::class, 'index']); // todo ->middleware('perm:ombor.bugalteriya.view');
+    Route::get('/{bugalteriya}', [BugalteriyaController::class, 'show']); // todo ->middleware('perm:ombor.bugalteriya.view');
+    Route::post('/{bugalteriya}/complete', [BugalteriyaController::class, 'complete']); // todo ->middleware('perm:ombor.bugalteriya.complete');
+    Route::post('/{bugalteriya}/cancel',   [BugalteriyaController::class, 'cancel']); // todo ->middleware('perm:ombor.bugalteriya.cancel');
 });
 
 //Information
 Route::prefix('information')->group(function () {
-    // Statik route'lar {information} parametridan OLDIN turishi shart
     Route::get('pending',  [InformationController::class, 'pending'])->middleware('perm:ombor.informations.view');
     Route::get('my-tasks', [InformationController::class, 'myTasks'])->middleware('perm:ombor.informations.view');
     Route::post('bulk',    [InformationController::class, 'bulkStore'])->middleware('perm:ombor.informations.create');
@@ -131,7 +129,6 @@ Route::prefix('information')->group(function () {
     Route::post('', [InformationController::class, 'store'])->middleware('perm:ombor.informations.create');
     Route::get('{information}', [InformationController::class, 'show'])->middleware('perm:ombor.informations.view');
 
-    // Holatni o'zgartiruvchi action'lar uchun alohida "update" permission tavsiya etiladi
     Route::post('{information}/accept',   [InformationController::class, 'accept'])->middleware('perm:ombor.informations.update');
     Route::post('{information}/start',    [InformationController::class, 'start'])->middleware('perm:ombor.informations.update');
     Route::post('{information}/complete', [InformationController::class, 'complete'])->middleware('perm:ombor.informations.update');
@@ -140,17 +137,16 @@ Route::prefix('information')->group(function () {
 //Warehouse
 Route::prefix('warehouse')->group(function () {
     Route::get('/',           [WarehouseController::class, 'index'])->middleware('perm:ombor.warehouse.view');
-    Route::get('/item-types', [WarehouseController::class, 'itemTypes'])->middleware('perm:ombor.warehouse.view'); // {id} dan OLDIN turishi shart
-    // stats for manage todo middleware larni yoqib qo'yish kerak, loyiha topshirilgandan keyin
-    Route::get('/stats/categories', [WarehouseController::class, 'statsCategories']); //->middleware('perm:ombor.warehouse.view');
-    Route::get('/stats/models',     [WarehouseController::class, 'statsModels']); //->middleware('perm:ombor.warehouse.view');
+    Route::get('/item-types', [WarehouseController::class, 'itemTypes'])->middleware('perm:ombor.warehouse.view');
+    Route::get('/stats/categories', [WarehouseController::class, 'statsCategories']);
+    Route::get('/stats/models',     [WarehouseController::class, 'statsModels']);
 
     Route::post('/',          [WarehouseController::class, 'store'])->middleware('perm:ombor.warehouse.create');
     Route::get('/{id}',       [WarehouseController::class, 'show'])->middleware('perm:ombor.warehouse.view');
 });
 
-//WarehouseTransfer
-Route::prefix('warehouse-transfer')->middleware('perm:ombor.warehouse.update')->group(function () {
+//WarehouseTransfer todo ->middleware('perm:ombor.warehouse.update')
+Route::prefix('warehouse-transfer')->group(function () {
     Route::get('staff-search', [WarehouseTransferController::class, 'staffSearch']);
     Route::post('',            [WarehouseTransferController::class, 'store']);
 });
@@ -161,51 +157,16 @@ Route::prefix('transfers')->middleware('perm:ombor.transfers.create')->group(fun
 });
 
 //WarehouseBatch
-Route::middleware('auth:sanctum')->group(function () {
-    // 1-qadam — batch yaratish
-    Route::post('warehouse-batches', [WarehouseBatchController::class, 'store']);
-    Route::get('warehouse-batches/{batch}', [WarehouseBatchController::class, 'show']);
-    Route::get('warehouse-batches/{batch}/items', [WarehouseBatchController::class, 'items']);
+Route::get('warehouse-batches', [WarehouseBatchController::class, 'index']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse-batches.view');
+Route::post('warehouse-batches', [WarehouseBatchController::class, 'store']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse-batches.create');
+Route::get('warehouse-batches/{batch}', [WarehouseBatchController::class, 'show']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse-batches.view');
+Route::get('warehouse-batches/{batch}/items', [WarehouseBatchController::class, 'items']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse-batches.view');
+Route::post('warehouse-batches/{batch}/sign', [WarehouseBatchController::class, 'signAsAccountant']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse-batches.sign');
+Route::post('warehouse-batches/{batch}/approve', [WarehouseBatchController::class, 'approve']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse-batches.approve');
+Route::post('warehouse-batches/{batch}/reject', [WarehouseBatchController::class, 'reject']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse-batches.approve');
 
-    // Buxgalter va tasdiqlovchilar
-    Route::post('warehouse-batches/{batch}/sign', [WarehouseBatchController::class, 'signAsAccountant']); // Menyu 2
-    Route::post('warehouse-batches/{batch}/approve', [WarehouseBatchController::class, 'approve']);
-    Route::post('warehouse-batches/{batch}/reject', [WarehouseBatchController::class, 'reject']);
+Route::get('warehouse-batches/{batch}/pdf', function (\App\Models\WarehouseBatch $batch) {
+    abort_unless($batch->file_path && Storage::disk('local')->exists($batch->file_path), 404);
 
-    // PDF yuklab olish (signed route)
-    Route::get('warehouse-batches/{batch}/pdf', function (\App\Models\WarehouseBatch $batch) {
-        abort_unless($batch->file_path && Storage::disk('local')->exists($batch->file_path), 404);
-
-        return Storage::disk('local')->response($batch->file_path);
-    })->middleware('signed')->name('warehouse-batches.pdf');
-});
-//WarehouseTransfer
-Route::prefix('warehouse-transfer')->middleware('perm:ombor.warehouse.update')->group(function () {
-    Route::get('staff-search', [WarehouseTransferController::class, 'staffSearch']);
-    Route::post('',            [WarehouseTransferController::class, 'store']);
-});
-
-//Transfer
-Route::prefix('transfers')->middleware('perm:ombor.transfers.create')->group(function () {
-    Route::post('/', [TransferController::class, 'store']);
-});
-
-//WarehouseBatch
-Route::middleware('auth:sanctum')->group(function () {
-    // 1-qadam — batch yaratish
-    Route::post('warehouse-batches', [WarehouseBatchController::class, 'store']);
-    Route::get('warehouse-batches/{batch}', [WarehouseBatchController::class, 'show']);
-    Route::get('warehouse-batches/{batch}/items', [WarehouseBatchController::class, 'items']);
-
-    // Buxgalter va tasdiqlovchilar
-    Route::post('warehouse-batches/{batch}/sign', [WarehouseBatchController::class, 'signAsAccountant']); // Menyu 2
-    Route::post('warehouse-batches/{batch}/approve', [WarehouseBatchController::class, 'approve']);
-    Route::post('warehouse-batches/{batch}/reject', [WarehouseBatchController::class, 'reject']);
-
-    // PDF yuklab olish (signed route)
-    Route::get('warehouse-batches/{batch}/pdf', function (\App\Models\WarehouseBatch $batch) {
-        abort_unless($batch->file_path && Storage::disk('local')->exists($batch->file_path), 404);
-
-        return Storage::disk('local')->response($batch->file_path);
-    })->middleware('signed')->name('warehouse-batches.pdf');
-});
+    return Storage::disk('local')->response($batch->file_path);
+})->name('warehouse-batches.pdf'); //todo ->middleware('signed')->
