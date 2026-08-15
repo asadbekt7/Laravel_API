@@ -19,10 +19,6 @@ class PdfService
             ->name($this->normalizeName($filename));
     }
 
-    /**
-     * PDF'ni diskka saqlaydi va disk ichidagi nisbiy yo'lni qaytaradi.
-     * Standart 'local' disk (storage/app/private) — Storage::disk('local') orqali o'qiladi.
-     */
     public function saveToDisk(
         string $view,
         array $data,
@@ -31,7 +27,7 @@ class PdfService
         string $format = 'a4',
     ): string {
         $storage = Storage::disk($disk);
-        $storage->makeDirectory(dirname($path)); // papka bo'lmasa yaratamiz
+        $storage->makeDirectory(dirname($path));
 
         Pdf::view($view, $data)
             ->format($format)
