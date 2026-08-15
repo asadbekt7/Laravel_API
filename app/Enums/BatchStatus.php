@@ -1,5 +1,6 @@
 <?php
 // app/Enums/BatchStatus.php
+
 namespace App\Enums;
 
 enum BatchStatus: string

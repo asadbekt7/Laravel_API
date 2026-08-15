@@ -16,12 +16,13 @@ use App\Http\Controllers\StaffNameController;
 use App\Http\Controllers\RoomNameController;
 use App\Http\Controllers\ContractAPI\InformationController;
 use App\Http\Controllers\Api\WarehouseTransferController;
-use App\Http\Controllers\BugalteriyaController;
+use App\Http\Controllers\Api\BugalteriyaController;
 use App\Http\Controllers\Api\WarehouseController;
 use App\Http\Controllers\Api\TransferController;
 use App\Http\Controllers\Api\WarehouseBatchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/user', function (Request $request) {
     $user = $request->user();
@@ -158,21 +159,53 @@ Route::prefix('warehouse-transfer')->middleware('perm:ombor.warehouse.update')->
 Route::prefix('transfers')->middleware('perm:ombor.transfers.create')->group(function () {
     Route::post('/', [TransferController::class, 'store']);
 });
-//WarehouseBatch
-// Auth: barcha /api route'lariga global MyUwedAuth qo'llanadi (bootstrap/app.php) — alohida auth:sanctum kerak emas.
-// TODO(perm): loyiha topshirilgach permission qo'shish, masalan:
-//   ->middleware('perm:ombor.warehouse-batches.view')   // index/show/pdf
-//   ->middleware('perm:ombor.warehouse-batches.create') // store
-//   ->middleware('perm:ombor.warehouse-batches.sign')   // accept/approve/reject
-Route::prefix('warehouse-batches')->group(function () {
-    Route::get('/',              [WarehouseBatchController::class, 'index']);
-    Route::get('/{batch}',       [WarehouseBatchController::class, 'show']);
-    Route::post('/',             [WarehouseBatchController::class, 'store']);
-    Route::post('/{batch}/accept',  [WarehouseBatchController::class, 'accept']);   // buxgalter
-    Route::post('/{batch}/approve', [WarehouseBatchController::class, 'approve']);
-    Route::post('/{batch}/reject',  [WarehouseBatchController::class, 'reject']);
 
-    Route::get('/{batch}/pdf', [WarehouseBatchController::class, 'downloadPdf'])
-        ->middleware('signed')
-        ->name('warehouse-batches.pdf');
+//WarehouseBatch
+Route::middleware('auth:sanctum')->group(function () {
+    // 1-qadam — batch yaratish
+    Route::post('warehouse-batches', [WarehouseBatchController::class, 'store']);
+    Route::get('warehouse-batches/{batch}', [WarehouseBatchController::class, 'show']);
+    Route::get('warehouse-batches/{batch}/items', [WarehouseBatchController::class, 'items']);
+
+    // Buxgalter va tasdiqlovchilar
+    Route::post('warehouse-batches/{batch}/sign', [WarehouseBatchController::class, 'signAsAccountant']); // Menyu 2
+    Route::post('warehouse-batches/{batch}/approve', [WarehouseBatchController::class, 'approve']);
+    Route::post('warehouse-batches/{batch}/reject', [WarehouseBatchController::class, 'reject']);
+
+    // PDF yuklab olish (signed route)
+    Route::get('warehouse-batches/{batch}/pdf', function (\App\Models\WarehouseBatch $batch) {
+        abort_unless($batch->file_path && Storage::disk('local')->exists($batch->file_path), 404);
+
+        return Storage::disk('local')->response($batch->file_path);
+    })->middleware('signed')->name('warehouse-batches.pdf');
+});
+//WarehouseTransfer
+Route::prefix('warehouse-transfer')->middleware('perm:ombor.warehouse.update')->group(function () {
+    Route::get('staff-search', [WarehouseTransferController::class, 'staffSearch']);
+    Route::post('',            [WarehouseTransferController::class, 'store']);
+});
+
+//Transfer
+Route::prefix('transfers')->middleware('perm:ombor.transfers.create')->group(function () {
+    Route::post('/', [TransferController::class, 'store']);
+});
+
+//WarehouseBatch
+Route::middleware('auth:sanctum')->group(function () {
+    // 1-qadam — batch yaratish
+    Route::post('warehouse-batches', [WarehouseBatchController::class, 'store']);
+    Route::get('warehouse-batches/{batch}', [WarehouseBatchController::class, 'show']);
+    Route::get('warehouse-batches/{batch}/items', [WarehouseBatchController::class, 'items']);
+
+    // Buxgalter va tasdiqlovchilar
+    Route::post('warehouse-batches/{batch}/sign', [WarehouseBatchController::class, 'signAsAccountant']); // Menyu 2
+    Route::post('warehouse-batches/{batch}/approve', [WarehouseBatchController::class, 'approve']);
+    Route::post('warehouse-batches/{batch}/reject', [WarehouseBatchController::class, 'reject']);
+
+    // PDF yuklab olish (signed route)
+    Route::get('warehouse-batches/{batch}/pdf', function (\App\Models\WarehouseBatch $batch) {
+        abort_unless($batch->file_path && Storage::disk('local')->exists($batch->file_path), 404);
+
+        return Storage::disk('local')->response($batch->file_path);
+    })->middleware('signed')->name('warehouse-batches.pdf');
 });

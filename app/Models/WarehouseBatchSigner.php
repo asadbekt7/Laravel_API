@@ -1,5 +1,6 @@
 <?php
 // app/Models/WarehouseBatchSigner.php
+
 namespace App\Models;
 
 use App\Enums\SignerLevelStatus;

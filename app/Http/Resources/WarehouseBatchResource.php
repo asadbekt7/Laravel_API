@@ -1,5 +1,6 @@
 <?php
 // app/Http/Resources/WarehouseBatchResource.php
+
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
@@ -10,28 +11,25 @@ class WarehouseBatchResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $activeSigner = $this->relationLoaded('signers')
-            ? $this->signers->firstWhere('status', \App\Enums\SignerLevelStatus::Active)
-            : null;
-        $userId = $request->user()?->id;
-
         return [
             'id' => $this->id,
             'batch_number' => $this->batch_number,
             'status' => $this->status,
-            'active_level' => $activeSigner?->level,
-            'can_act' => $activeSigner && $userId && $activeSigner->user_id === $userId,
-            'staff' => $this->whenLoaded('staff', fn () => ['id' => $this->staff->id, 'name' => $this->staff->name]),
-            'pdf_url' => $this->pdf_path
+            'created_by' => $this->whenLoaded('createdBy', fn () => [
+                'id' => $this->createdBy->id,
+                'name' => $this->createdBy->name,
+            ]),
+            'pdf_url' => $this->file_path
                 ? URL::temporarySignedRoute('warehouse-batches.pdf', now()->addMinutes(10), ['batch' => $this->id])
                 : null,
-            'items' => $this->whenLoaded('items', fn () => $this->items->map(fn ($i) => [
-                'id' => $i->id,
-                'warehouse_name' => $i->warehouse->name,
-                'quantity' => $i->quantity,
-                'talab_qilingan' => $i->talab_qilingan,
-                'debit' => $i->debit,
-                'kredit' => $i->kredit,
+            'entries' => $this->whenLoaded('entries', fn () => $this->entries->map(fn ($e) => [
+                'id' => $e->id,
+                'name' => $e->name,
+                'quantity' => $e->quantity,
+                'status' => $e->status,
+                'debit' => $e->debit,
+                'kredit' => $e->kredit,
+                'talab_qilingan' => $e->talab_qilingan,
             ])),
             'signers' => $this->whenLoaded('signers', fn () => $this->signers->map(fn ($s) => [
                 'level' => $s->level,
