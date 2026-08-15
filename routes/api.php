@@ -159,15 +159,20 @@ Route::prefix('transfers')->middleware('perm:ombor.transfers.create')->group(fun
     Route::post('/', [TransferController::class, 'store']);
 });
 //WarehouseBatch
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('warehouse-batches', [WarehouseBatchController::class, 'index']);
-    Route::get('warehouse-batches/{batch}', [WarehouseBatchController::class, 'show']);
-    Route::post('warehouse-batches', [WarehouseBatchController::class, 'store']);
-    Route::post('warehouse-batches/{batch}/accept', [WarehouseBatchController::class, 'accept']);   // buxgalter
-    Route::post('warehouse-batches/{batch}/approve', [WarehouseBatchController::class, 'approve']);
-    Route::post('warehouse-batches/{batch}/reject', [WarehouseBatchController::class, 'reject']);
+// Auth: barcha /api route'lariga global MyUwedAuth qo'llanadi (bootstrap/app.php) — alohida auth:sanctum kerak emas.
+// TODO(perm): loyiha topshirilgach permission qo'shish, masalan:
+//   ->middleware('perm:ombor.warehouse-batches.view')   // index/show/pdf
+//   ->middleware('perm:ombor.warehouse-batches.create') // store
+//   ->middleware('perm:ombor.warehouse-batches.sign')   // accept/approve/reject
+Route::prefix('warehouse-batches')->group(function () {
+    Route::get('/',              [WarehouseBatchController::class, 'index']);
+    Route::get('/{batch}',       [WarehouseBatchController::class, 'show']);
+    Route::post('/',             [WarehouseBatchController::class, 'store']);
+    Route::post('/{batch}/accept',  [WarehouseBatchController::class, 'accept']);   // buxgalter
+    Route::post('/{batch}/approve', [WarehouseBatchController::class, 'approve']);
+    Route::post('/{batch}/reject',  [WarehouseBatchController::class, 'reject']);
 
-    Route::get('warehouse-batches/{batch}/pdf', [WarehouseBatchController::class, 'downloadPdf'])
+    Route::get('/{batch}/pdf', [WarehouseBatchController::class, 'downloadPdf'])
         ->middleware('signed')
         ->name('warehouse-batches.pdf');
 });

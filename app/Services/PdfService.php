@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Storage;
 use Spatie\LaravelPdf\PdfBuilder;
 use Spatie\LaravelPdf\Facades\Pdf;
 
@@ -18,15 +19,23 @@ class PdfService
             ->name($this->normalizeName($filename));
     }
 
+    /**
+     * PDF'ni diskka saqlaydi va disk ichidagi nisbiy yo'lni qaytaradi.
+     * Standart 'local' disk (storage/app/private) — Storage::disk('local') orqali o'qiladi.
+     */
     public function saveToDisk(
         string $view,
         array $data,
         string $path,
+        string $disk = 'local',
         string $format = 'a4',
     ): string {
+        $storage = Storage::disk($disk);
+        $storage->makeDirectory(dirname($path)); // papka bo'lmasa yaratamiz
+
         Pdf::view($view, $data)
             ->format($format)
-            ->save(storage_path('app/'.$path));
+            ->save($storage->path($path));
 
         return $path;
     }

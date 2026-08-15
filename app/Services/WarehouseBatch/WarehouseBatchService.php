@@ -12,12 +12,14 @@ use Illuminate\Support\Facades\DB;
 
 class WarehouseBatchService
 {
+    public function __construct(private readonly BatchPdfService $pdf) {}
+
     public function create(CreateWarehouseBatchDTO $dto): WarehouseBatch
     {
         // Deadlock oldini olish uchun bir xil tartibda qulflaymiz
         $products = collect($dto->products)->sortBy('warehouse_id')->values()->all();
 
-        return DB::transaction(function () use ($dto, $products) {
+        $batch = DB::transaction(function () use ($dto, $products) {
             $batch = WarehouseBatch::create([
                 'staff_id' => $dto->staffId,
                 'created_by' => $dto->createdBy,
@@ -75,5 +77,9 @@ class WarehouseBatchService
 
             return $batch->load(['items.warehouse', 'signers.user', 'staff']);
         });
+
+        $this->pdf->generate($batch);
+
+        return $batch;
     }
 }

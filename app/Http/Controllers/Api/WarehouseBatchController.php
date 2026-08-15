@@ -17,8 +17,8 @@ use App\Services\WarehouseBatch\WarehouseBatchApprovalService;
 use App\Services\WarehouseBatch\WarehouseBatchService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class WarehouseBatchController extends Controller
 {
@@ -32,7 +32,7 @@ class WarehouseBatchController extends Controller
     {
         $query = WarehouseBatch::query()->with(['staff', 'signers.user']);
 
-        if ($request->boolean('assigned_to_me')) {
+        if ($request->boolean('assigned_to_me') && $request->user()) {
             $query->whereHas('signers', fn ($q) => $q
                 ->where('user_id', $request->user()->id)
                 ->where('status', \App\Enums\SignerLevelStatus::Active));
@@ -48,7 +48,9 @@ class WarehouseBatchController extends Controller
      */
     public function show(WarehouseBatch $batch): WarehouseBatchResource
     {
-        $this->authorize('view', $batch);
+        if (auth()->check()) {
+            $this->authorize('view', $batch);
+        }
 
         return new WarehouseBatchResource(
             $batch->load(['items.warehouse', 'signers.user', 'staff'])
@@ -130,9 +132,11 @@ class WarehouseBatchController extends Controller
      * signed route + shu endpoint orqali fayl stream qilinadi.
      * Route "signed" middleware bilan himoyalangan (routes/api.php'ga qarang).
      */
-    public function downloadPdf(WarehouseBatch $batch): Response
+    public function downloadPdf(WarehouseBatch $batch): StreamedResponse
     {
-        $this->authorize('view', $batch);
+        if (auth()->check()) {
+            $this->authorize('view', $batch);
+        }
 
         abort_unless(
             $batch->pdf_path && Storage::disk('local')->exists($batch->pdf_path),

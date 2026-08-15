@@ -10,10 +10,17 @@ class WarehouseBatchResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $activeSigner = $this->relationLoaded('signers')
+            ? $this->signers->firstWhere('status', \App\Enums\SignerLevelStatus::Active)
+            : null;
+        $userId = $request->user()?->id;
+
         return [
             'id' => $this->id,
             'batch_number' => $this->batch_number,
             'status' => $this->status,
+            'active_level' => $activeSigner?->level,
+            'can_act' => $activeSigner && $userId && $activeSigner->user_id === $userId,
             'staff' => $this->whenLoaded('staff', fn () => ['id' => $this->staff->id, 'name' => $this->staff->name]),
             'pdf_url' => $this->pdf_path
                 ? URL::temporarySignedRoute('warehouse-batches.pdf', now()->addMinutes(10), ['batch' => $this->id])

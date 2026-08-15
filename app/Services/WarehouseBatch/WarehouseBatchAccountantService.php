@@ -13,12 +13,13 @@ class WarehouseBatchAccountantService
 {
     public function __construct(
         private readonly BatchWorkflowService $workflowService,
+        private readonly BatchPdfService $pdf,
     ) {}
 
     /** @param array $entries [['id'=>int,'debit'=>string,'kredit'=>string,'talab_qilingan'=>int], ...] */
     public function accept(WarehouseBatch $batch, User $accountant, array $entries): WarehouseBatch
     {
-        return DB::transaction(function () use ($batch, $accountant, $entries) {
+        $batch = DB::transaction(function () use ($batch, $accountant, $entries) {
             $batch = WarehouseBatch::whereKey($batch->id)->lockForUpdate()->firstOrFail();
 
             $active = $batch->signers()
@@ -58,5 +59,10 @@ class WarehouseBatchAccountantService
 
             return $batch->fresh(['items.warehouse', 'signers.user']);
         });
+
+        // Debit/kredit/talab to'ldirilgach — hujjatni qayta generatsiya.
+        $this->pdf->generate($batch);
+
+        return $batch;
     }
 }

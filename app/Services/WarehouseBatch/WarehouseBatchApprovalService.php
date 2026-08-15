@@ -13,11 +13,12 @@ class WarehouseBatchApprovalService
 {
     public function __construct(
         private readonly BatchWorkflowService $workflowService,
+        private readonly BatchPdfService $pdf,
     ) {}
 
     public function approve(WarehouseBatch $batch, User $user, ?string $comment): WarehouseBatch
     {
-        return DB::transaction(function () use ($batch, $user, $comment) {
+        $batch = DB::transaction(function () use ($batch, $user, $comment) {
             [$lockedBatch, $active] = $this->lockActiveSigner($batch, $user);
 
             $active->update([
@@ -30,11 +31,15 @@ class WarehouseBatchApprovalService
 
             return $lockedBatch->fresh(['items.warehouse', 'signers.user']);
         });
+
+        $this->pdf->generate($batch);
+
+        return $batch;
     }
 
     public function reject(WarehouseBatch $batch, User $user, string $comment): WarehouseBatch
     {
-        return DB::transaction(function () use ($batch, $user, $comment) {
+        $batch = DB::transaction(function () use ($batch, $user, $comment) {
             [$lockedBatch, $active] = $this->lockActiveSigner($batch, $user);
 
             $active->update([
@@ -47,6 +52,10 @@ class WarehouseBatchApprovalService
 
             return $lockedBatch->fresh(['items.warehouse', 'signers.user']);
         });
+
+        $this->pdf->generate($batch);
+
+        return $batch;
     }
 
     /** @return array{0: WarehouseBatch, 1: WarehouseBatchSigner} */
