@@ -1,46 +1,61 @@
 <?php
+// app/Services/WarehouseTransferService.php
 
 namespace App\Services;
 
+use App\Enums\BatchStatus;
+use App\Enums\SignerLevelStatus;
 use App\Exceptions\InsufficientQuantityException;
 use App\Models\BugalteriyaModel;
+use App\Models\WarehouseBatch;
 use App\Models\WarehouseModel;
+use DomainException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class WarehouseTransferService
 {
     /**
-     * Ombordan mahsulotlarni xodimga biriktirish.
-     *
-     * Endi to'g'ridan-to'g'ri items ga emas, bugalteriya jadvaliga
-     * "pending" holatda yoziladi. item_type / expiry_date / statya /
-     * inventory_number BU YERDA yozilmaydi — ularni keyin buxgalter
-     * o'zi tanlab/to'ldirib beradi (BugalteriyaService::complete).
-     *
      * @param array $staff    Tanlangan xodim (snapshot)
      * @param array $products Tanlangan mahsulotlar
+     * @param int   $batchId  "POST /warehouse-batches" orqali oldindan yaratilgan batch ID'si
      *
      * @return Collection<int, BugalteriyaModel>
      *
      * @throws InsufficientQuantityException
+     * @throws DomainException
      */
-    public function handle(array $staff, array $products): Collection
+    public function handle(array $staff, array $products, int $batchId): Collection
     {
-        // Deadlock oldini olish: qulflash tartibi doim bir xil
-        $products = collect($products)
-            ->sortBy('warehouse_id')
-            ->values()
-            ->all();
+        $products = collect($products)->sortBy('warehouse_id')->values()->all();
 
-        return DB::transaction(function () use ($staff, $products) {
+        return DB::transaction(function () use ($staff, $products, $batchId) {
+            $batch = WarehouseBatch::lockForUpdate()->findOrFail($batchId);
+
+            if ($batch->status !== BatchStatus::InProgress) {
+                throw new DomainException('Bu batch allaqachon yopilgan yoki rad etilgan — mahsulot biriktirib bo\'lmaydi.');
+            }
+
+            // === BUG FIX ===
+            // Bugalter (1-daraja) allaqachon imzolab bo'lgan bo'lsa, batch endi 2-daraja
+            // (yoki undan keyingi) tasdiqlashni kutmoqda — status hali "InProgress" bo'lib
+            // turadi. Shu holatda yangi mahsulot biriktirilsa, u bugalter nazoratidan
+            // chetlab o'tib, debit/kredit'siz PDF'ga tushib qolardi.
+            $accountantIsActive = $batch->signers()
+                ->where('level', 1)
+                ->where('status', SignerLevelStatus::Active)
+                ->exists();
+
+            if (! $accountantIsActive) {
+                throw new DomainException('Bugalter ushbu batchni allaqachon tasdiqlagan — endi yangi mahsulot qo\'shib bo\'lmaydi. Yangi batch oching.');
+            }
+
             $created = collect();
 
             foreach ($products as $product) {
                 $requested = (int) $product['quantity'];
 
-                $warehouse = WarehouseModel::lockForUpdate()
-                    ->findOrFail($product['warehouse_id']);
+                $warehouse = WarehouseModel::lockForUpdate()->findOrFail($product['warehouse_id']);
 
                 if ($warehouse->quantity < $requested) {
                     throw new InsufficientQuantityException(
@@ -53,6 +68,7 @@ class WarehouseTransferService
                 $warehouse->load('information.supplier');
 
                 $entry = BugalteriyaModel::create([
+                    'batch_id'         => $batch->id,
                     'warehouse_id'     => $warehouse->id,
 
                     'name'             => $warehouse->name,
@@ -65,9 +81,6 @@ class WarehouseTransferService
                     'unit_id'          => $warehouse->unit_id,
 
                     'quantity'         => $requested,
-
-                    // item_type / expiry_date / inventory_number / statya
-                    // BU YERDA yo'q — buxgalter keyin to'ldiradi.
 
                     'room_name'        => $product['room_name'] ?? null,
                     'building'         => $product['building'] ?? null,
@@ -85,7 +98,6 @@ class WarehouseTransferService
                     'status'           => BugalteriyaModel::STATUS_PENDING,
                 ]);
 
-                // SQL darajasidagi shartli kamaytirish — ikkinchi qavat himoya
                 $affected = WarehouseModel::where('id', $warehouse->id)
                     ->where('quantity', '>=', $requested)
                     ->decrement('quantity', $requested);

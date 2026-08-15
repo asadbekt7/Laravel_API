@@ -1,5 +1,6 @@
 <?php
 // app/Http/Requests/WarehouseBatch/ApproveWarehouseBatchRequest.php
+
 namespace App\Http\Requests\WarehouseBatch;
 
 use Illuminate\Foundation\Http\FormRequest;

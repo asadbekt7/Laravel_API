@@ -1,4 +1,5 @@
 <?php
+// app/Models/BugalteriyaModel.php
 
 namespace App\Models;
 
@@ -13,7 +14,7 @@ class BugalteriyaModel extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
-        'item_type'    => ItemType::class, // null bo'lishi mumkin (buxgalter tanlaguncha)
+        'item_type'    => ItemType::class,
         'expiry_date'  => 'date',
         'completed_at' => 'datetime',
     ];
@@ -52,8 +53,19 @@ class BugalteriyaModel extends Model
         return $this->belongsTo(UnitModel::class, 'unit_id');
     }
 
+    public function batch(): BelongsTo
+    {
+        return $this->belongsTo(WarehouseBatch::class, 'batch_id');
+    }
+
     public function isPending(): bool
     {
         return $this->status === self::STATUS_PENDING;
+    }
+
+    /** MENYU 1 — tasnif kutayotgan yozuvlar */
+    public function scopeAwaitingClassification($query)
+    {
+        return $query->where('status', self::STATUS_PENDING);
     }
 }

@@ -1,12 +1,13 @@
 <?php
 // app/Services/WarehouseBatch/WarehouseBatchApprovalService.php
+
 namespace App\Services\WarehouseBatch;
 
 use App\Enums\SignerLevelStatus;
-use App\Exceptions\BatchSignException;
 use App\Models\User;
 use App\Models\WarehouseBatch;
 use App\Models\WarehouseBatchSigner;
+use DomainException;
 use Illuminate\Support\Facades\DB;
 
 class WarehouseBatchApprovalService
@@ -28,7 +29,7 @@ class WarehouseBatchApprovalService
 
             $this->workflowService->advance($lockedBatch, completedLevel: $active->level);
 
-            return $lockedBatch->fresh(['items.warehouse', 'signers.user']);
+            return $lockedBatch->fresh(['entries', 'signers.user']);
         });
     }
 
@@ -45,7 +46,7 @@ class WarehouseBatchApprovalService
 
             $this->workflowService->reject($lockedBatch);
 
-            return $lockedBatch->fresh(['items.warehouse', 'signers.user']);
+            return $lockedBatch->fresh(['entries', 'signers.user']);
         });
     }
 
@@ -60,7 +61,7 @@ class WarehouseBatchApprovalService
             ->first();
 
         if (! $active) {
-            throw new BatchSignException('Sizning navbatingiz emas yoki batch yopilgan.');
+            throw new DomainException('Sizning navbatingiz emas yoki batch yopilgan.');
         }
 
         return [$lockedBatch, $active];
