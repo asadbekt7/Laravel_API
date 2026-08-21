@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Receiving\StoreReceivingRequest;
+use App\Http\Requests\Receiving\ReceivingIndexRequest;
 use App\Http\Requests\Receiving\UpdateReceivingRequest;
 use App\Models\ReceivingModel;
 use Illuminate\Http\JsonResponse;
@@ -31,7 +31,7 @@ class ReceivingController extends Controller
         ]);
     }
 
-    public function store(StoreReceivingRequest $request): JsonResponse
+    public function store(ReceivingIndexRequest $request): JsonResponse
     {
         $receiving = ReceivingModel::create($request->validated());
         $receiving->load(['documentType:id,name', 'warehouse']);

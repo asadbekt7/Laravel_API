@@ -72,15 +72,14 @@ class InformationModel extends Model
         });
     }
 
-
     public function supplier(): BelongsTo
     {
-        return $this->belongsTo(SupplierModel::class,'supplier_id',);
+        return $this->belongsTo(SupplierModel::class, 'supplier_id');
     }
 
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(UnitModel::class, 'unit_id',);
+        return $this->belongsTo(UnitModel::class, 'unit_id');
     }
 
     public function creator(): BelongsTo
@@ -95,14 +94,10 @@ class InformationModel extends Model
 
     /* ---------------- Status boshqaruvi ---------------- */
 
-    /**
-     * "Qabul qilish" bosilganda chaqiriladi —
-     * assignee_id joriy foydalanuvchi nomiga yoziladi.
-     */
     public function accept(): bool
     {
         if ($this->status !== InformationStatus::Pending) {
-            return false; // faqat pending holatda qabul qilish mumkin
+            return false;
         }
 
         return $this->forceFill([
@@ -112,9 +107,6 @@ class InformationModel extends Model
         ])->save();
     }
 
-    /**
-     * Ishni boshlash (ixtiyoriy oraliq bosqich).
-     */
     public function startProgress(): bool
     {
         if ($this->status !== InformationStatus::Accepted) {
@@ -122,7 +114,7 @@ class InformationModel extends Model
         }
 
         if (auth()->id() !== $this->assignee_id) {
-            return false; // faqat qabul qilgan odam boshlashi mumkin
+            return false;
         }
 
         return $this->forceFill([
@@ -130,9 +122,6 @@ class InformationModel extends Model
         ])->save();
     }
 
-    /**
-     * Ishni yakunlash.
-     */
     public function complete(): bool
     {
         if (! in_array($this->status, [InformationStatus::Accepted, InformationStatus::InProgress])) {
@@ -140,7 +129,7 @@ class InformationModel extends Model
         }
 
         if (auth()->id() !== $this->assignee_id) {
-            return false; // faqat qabul qilgan odam yakunlashi mumkin
+            return false;
         }
 
         return $this->forceFill([
@@ -154,6 +143,16 @@ class InformationModel extends Model
     public function scopePending($query)
     {
         return $query->where('status', InformationStatus::Pending);
+    }
+
+    /**
+     * Faqat butun qabul-topshirish jarayoni yakunlangan (akt tayyor) yozuvlar.
+     * /receiving endpoint'i faqat shu holatdagi ma'lumotlarni ko'rsatishi kerak
+     * (jarayon tugamagan akt hali "rasmiy" hisoblanmaydi).
+     */
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', InformationStatus::Completed);
     }
 
     public function scopeAssignedTo($query, int $userId)

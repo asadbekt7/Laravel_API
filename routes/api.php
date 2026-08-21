@@ -6,7 +6,6 @@ use App\Http\Controllers\ModelController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\DocumentTypeController;
-use App\Http\Controllers\Api\ReceivingController;
 use App\Http\Controllers\Api\InventoryImportController;
 use App\Http\Controllers\Api\UzasboImportController;
 use App\Http\Controllers\Api\ItemsController;
@@ -15,6 +14,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\StaffNameController;
 use App\Http\Controllers\RoomNameController;
 use App\Http\Controllers\ContractAPI\InformationController;
+use App\Http\Controllers\ContractAPI\ReceivingController;
 use App\Http\Controllers\Api\WarehouseTransferController;
 use App\Http\Controllers\Api\BugalteriyaController;
 use App\Http\Controllers\Api\WarehouseController;
@@ -170,3 +170,26 @@ Route::get('warehouse-batches/{batch}/pdf', function (\App\Models\WarehouseBatch
 
     return Storage::disk('local')->response($batch->file_path);
 })->name('warehouse-batches.pdf'); //todo ->middleware('signed')->
+
+Route::middleware(['auth:sanctum'])->group(function () {
+
+    // ... mavjud Route::apiResource('information', InformationController::class)
+    //     va accept/start/complete/bulk marshrutlari shu yerda ...
+
+    Route::prefix('receiving')
+        ->name('receiving.')
+        ->controller(ReceivingController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+
+            Route::get('/{aktNumber}', 'show')
+                ->where('aktNumber', '[A-Za-z0-9\-\.]+')
+                ->name('show');
+
+            Route::get('/{aktNumber}/pdf', 'pdf')
+                ->where('aktNumber', '[A-Za-z0-9\-\.]+')
+                ->middleware('throttle:20,1') // PDF generatsiyasi CPU-og'ir — suiiste'moldan himoya
+                ->name('pdf');
+        });
+});
+

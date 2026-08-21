@@ -5,6 +5,7 @@ namespace App\Enums;
 
 enum BatchStatus: string
 {
+    case PENDING = 'pending';
     case InProgress = 'in_progress';
     case Completed  = 'completed';
     case Rejected   = 'rejected';
