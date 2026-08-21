@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions\Receiving;
 
-use App\DTO\Receiving\ReceivingActData;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Response;
+use App\DTOs\Receiving\ReceivingActData;
+use App\Services\PdfService;
+use Illuminate\Contracts\Support\Responsable;
 
 /**
  * Bitta vazifa — Приёмный акт blankini PDF ko'rinishida shakllantirish.
@@ -15,15 +15,19 @@ use Illuminate\Http\Response;
  */
 final class GenerateReceivingActPdfAction
 {
-    public function execute(ReceivingActData $act, bool $forceDownload = false): Response
+    public function __construct(
+        private readonly PdfService $pdf,
+    ) {
+    }
+
+    public function execute(ReceivingActData $act, bool $forceDownload = false, string $lang = 'ru'): Responsable
     {
-        $pdf = Pdf::loadView('pdf.receiving-act', ['act' => $act])
-            ->setPaper('a4', 'portrait');
+        $lang = in_array($lang, ['uz', 'ru', 'en'], true) ? $lang : 'ru';
 
         $fileName = sprintf('akt-%s.pdf', str_replace(['/', '\\'], '-', $act->aktNumber));
 
-        return $forceDownload
-            ? $pdf->download($fileName)
-            : $pdf->stream($fileName);
+        $pdf = $this->pdf->fromView('pdf.receiving-act', ['act' => $act, 'lang' => $lang], $fileName);
+
+        return $forceDownload ? $pdf->download($fileName) : $pdf;
     }
 }

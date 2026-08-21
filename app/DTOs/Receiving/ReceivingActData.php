@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\DTO\Receiving;
+namespace App\DTOs\Receiving;
 
 use App\Support\NumberToWords\SumToWordsConverter;
 use Illuminate\Support\Collection;

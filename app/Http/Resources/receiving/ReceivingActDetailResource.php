@@ -12,7 +12,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * Faqat blankda mavjud bo'lgan maydonlar qaytariladi — description, timestamp
  * kabi ortiqcha ma'lumotlar qasddan chiqarilmaydi (talab #7).
  *
- * @mixin \App\DTO\Receiving\ReceivingActData
+ * @mixin \App\DTOs\Receiving\ReceivingActData
  */
 class ReceivingActDetailResource extends JsonResource
 {

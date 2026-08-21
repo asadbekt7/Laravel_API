@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \App\DTO\Receiving\ReceivingActItemData
+ * @mixin \App\DTOs\Receiving\ReceivingActItemData
  */
 class ReceivingActItemResource extends JsonResource
 {

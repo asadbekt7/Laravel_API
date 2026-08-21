@@ -165,31 +165,33 @@ Route::post('warehouse-batches/{batch}/sign', [WarehouseBatchController::class, 
 Route::post('warehouse-batches/{batch}/approve', [WarehouseBatchController::class, 'approve']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse-batches.approve');
 Route::post('warehouse-batches/{batch}/reject', [WarehouseBatchController::class, 'reject']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse-batches.approve');
 
-Route::get('warehouse-batches/{batch}/pdf', function (\App\Models\WarehouseBatch $batch) {
+Route::get('warehouse-batches/{batch}/pdf', function (\App\Models\WarehouseBatch $batch, \Illuminate\Http\Request $request, \App\Services\PdfService $pdf) {
+    $lang = $request->query('lang');
+
+    if (in_array($lang, ['uz', 'ru', 'en'], true)) {
+        $batch->load(['entries.warehouse.unit', 'signers.user', 'createdBy']);
+
+        return $pdf->fromView('yuk-xati', ['batch' => $batch, 'lang' => $lang], "yuk-xati-{$batch->id}.pdf");
+    }
+
     abort_unless($batch->file_path && Storage::disk('local')->exists($batch->file_path), 404);
 
     return Storage::disk('local')->response($batch->file_path);
 })->name('warehouse-batches.pdf'); //todo ->middleware('signed')->
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::prefix('receiving')
+    ->name('receiving.')
+    ->controller(ReceivingController::class)
+    ->group(function () {
+        Route::get('/', 'index')->name('index');
 
-    // ... mavjud Route::apiResource('information', InformationController::class)
-    //     va accept/start/complete/bulk marshrutlari shu yerda ...
+        Route::get('/{aktNumber}', 'show')
+            ->where('aktNumber', '[A-Za-z0-9\-\.]+')
+            ->name('show');
 
-    Route::prefix('receiving')
-        ->name('receiving.')
-        ->controller(ReceivingController::class)
-        ->group(function () {
-            Route::get('/', 'index')->name('index');
-
-            Route::get('/{aktNumber}', 'show')
-                ->where('aktNumber', '[A-Za-z0-9\-\.]+')
-                ->name('show');
-
-            Route::get('/{aktNumber}/pdf', 'pdf')
-                ->where('aktNumber', '[A-Za-z0-9\-\.]+')
-                ->middleware('throttle:20,1') // PDF generatsiyasi CPU-og'ir — suiiste'moldan himoya
-                ->name('pdf');
-        });
-});
+        Route::get('/{aktNumber}/pdf', 'pdf')
+            ->where('aktNumber', '[A-Za-z0-9\-\.]+')
+            ->middleware('throttle:20,1') // PDF generatsiyasi CPU-og'ir — suiiste'moldan himoya
+            ->name('pdf');
+    });
 

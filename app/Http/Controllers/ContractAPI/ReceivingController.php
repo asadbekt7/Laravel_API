@@ -10,9 +10,9 @@ use App\Http\Requests\Receiving\ReceivingIndexRequest;
 use App\Http\Resources\Receiving\ReceivingActDetailResource;
 use App\Http\Resources\Receiving\ReceivingActListResource;
 use App\Services\Receiving\ReceivingService;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\Response;
 
 class ReceivingController extends Controller
 {
@@ -50,9 +50,9 @@ class ReceivingController extends Controller
         string $aktNumber,
         Request $request,
         GenerateReceivingActPdfAction $action,
-    ): Response {
+    ): Responsable {
         $act = $this->service->show($aktNumber);
 
-        return $action->execute($act, $request->boolean('download'));
+        return $action->execute($act, $request->boolean('download'), (string) $request->query('lang', 'ru'));
     }
 }

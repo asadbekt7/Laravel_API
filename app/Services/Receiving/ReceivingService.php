@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Receiving;
 
-use App\DTO\Receiving\ReceivingActData;
+use App\DTOs\Receiving\ReceivingActData;
 use App\Exceptions\ReceivingActNotFoundException;
 use App\Http\Requests\Receiving\ReceivingIndexRequest;
 use App\Repositories\Receiving\ReceivingRepository;

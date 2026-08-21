@@ -2,9 +2,92 @@
     use App\Support\NumberToWordsUz;
     use Illuminate\Support\Str;
 
-    $months = [1 => 'январ', 2 => 'феврал', 3 => 'март', 4 => 'апрел', 5 => 'май', 6 => 'июн',
-               7 => 'июл', 8 => 'август', 9 => 'сентябр', 10 => 'октябр', 11 => 'ноябр', 12 => 'декабр'];
+    $lang = $lang ?? 'uz';
+    $lang = in_array($lang, ['uz', 'ru', 'en'], true) ? $lang : 'uz';
+
+    $T = [
+        'uz' => [
+            'approve'  => 'Tasdiqlayman:',
+            'org1'     => 'Jahon iqtisodiyoti va diplomatiya universiteti',
+            'org2'     => "Moliya va xo'jalik masalalari bo'yicha rektor o'rinbosari",
+            'title'    => '%s-son YUK XATI (TALABNOMA)',
+            'date_suf' => 'y.',
+            'm_recipient' => 'Tashkilot — oluvchining nomi',
+            'm_dept'      => "Tarkibiy bo'limi",
+            'm_sender'    => "Tashkilot (jo'natuvchi)",
+            'm_sender_v'  => 'Markaziy ombor',
+            'm_person'    => 'Moddiy javobgar shaxs',
+            'h_name'   => "Moddiy qiymatliklarning nomi, navi va o'lchami",
+            'h_unit'   => "O'lch. birligi",
+            'h_acc'    => 'Buxgalteriya yozuvi',
+            'h_debit'  => 'debet', 'h_credit' => 'kredit',
+            'h_qty'    => 'Miqdor', 'h_req' => 'talab qilingan', 'h_given' => 'berilgan',
+            'h_price'  => "Narxi, so'm", 'h_sum' => "Summa, so'm",
+            'total'    => 'Jami:',
+            's_chief'  => 'Bosh hisobchi', 's_acc' => 'Hisobchi', 's_recv' => 'Oldim', 's_deliv' => 'Topshirdim',
+        ],
+        'ru' => [
+            'approve'  => 'Утверждаю:',
+            'org1'     => 'Университет мировой экономики и дипломатии',
+            'org2'     => 'Проректор по финансово-хозяйственным вопросам',
+            'title'    => 'НАКЛАДНАЯ (ТРЕБОВАНИЕ) № %s',
+            'date_suf' => 'г.',
+            'm_recipient' => 'Организация-получатель',
+            'm_dept'      => 'Структурное подразделение',
+            'm_sender'    => 'Организация (отправитель)',
+            'm_sender_v'  => 'Центральный склад',
+            'm_person'    => 'Материально ответственное лицо',
+            'h_name'   => 'Наименование, сорт и размер ТМЦ',
+            'h_unit'   => 'Ед. изм.',
+            'h_acc'    => 'Бухгалтерская запись',
+            'h_debit'  => 'дебет', 'h_credit' => 'кредит',
+            'h_qty'    => 'Количество', 'h_req' => 'затребовано', 'h_given' => 'отпущено',
+            'h_price'  => 'Цена, сум', 'h_sum' => 'Сумма, сум',
+            'total'    => 'Итого:',
+            's_chief'  => 'Главный бухгалтер', 's_acc' => 'Бухгалтер', 's_recv' => 'Получил', 's_deliv' => 'Сдал',
+        ],
+        'en' => [
+            'approve'  => 'Approved:',
+            'org1'     => 'University of World Economy and Diplomacy',
+            'org2'     => 'Vice-Rector for Financial and Economic Affairs',
+            'title'    => 'WAYBILL (REQUISITION) № %s',
+            'date_suf' => '',
+            'm_recipient' => 'Recipient organization',
+            'm_dept'      => 'Department',
+            'm_sender'    => 'Organization (sender)',
+            'm_sender_v'  => 'Central warehouse',
+            'm_person'    => 'Responsible person',
+            'h_name'   => 'Name, grade and size of goods',
+            'h_unit'   => 'Unit',
+            'h_acc'    => 'Accounting entry',
+            'h_debit'  => 'debit', 'h_credit' => 'credit',
+            'h_qty'    => 'Quantity', 'h_req' => 'requested', 'h_given' => 'issued',
+            'h_price'  => 'Price, sum', 'h_sum' => 'Amount, sum',
+            'total'    => 'Total:',
+            's_chief'  => 'Chief accountant', 's_acc' => 'Accountant', 's_recv' => 'Received', 's_deliv' => 'Delivered',
+        ],
+    ][$lang];
+
+    $MONTHS = [
+        'uz' => [1 => 'yanvar', 2 => 'fevral', 3 => 'mart', 4 => 'aprel', 5 => 'may', 6 => 'iyun',
+                 7 => 'iyul', 8 => 'avgust', 9 => 'sentabr', 10 => 'oktabr', 11 => 'noyabr', 12 => 'dekabr'],
+        'ru' => [1 => 'января', 2 => 'февраля', 3 => 'марта', 4 => 'апреля', 5 => 'мая', 6 => 'июня',
+                 7 => 'июля', 8 => 'августа', 9 => 'сентября', 10 => 'октября', 11 => 'ноября', 12 => 'декабря'],
+        'en' => [1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'May', 6 => 'June',
+                 7 => 'July', 8 => 'August', 9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'],
+    ][$lang];
+
     $docDate = $batch->completed_at ?? $batch->created_at;
+    $dateStr = null;
+    if ($docDate) {
+        $d = $docDate->format('d');
+        $mo = $MONTHS[(int) $docDate->format('n')];
+        $y = $docDate->format('Y');
+        $dateStr = $lang === 'en'
+            ? trim("{$mo} {$d}, {$y}")
+            : trim("“{$d}” {$mo} {$y} {$T['date_suf']}");
+    }
+
     $recipient = $batch->entries->first();
 
     $total = 0;
@@ -15,7 +98,7 @@
     $money = fn ($v) => number_format((float) $v, 2, ',', ' ');
 @endphp
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="{{ $lang }}">
 <head>
     <meta charset="UTF-8">
     <style>
@@ -23,24 +106,20 @@
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; font-family: "Times New Roman", serif; font-size: 12px; color: #000; }
 
-        /* ===== Header (o'ng tomonda tasdiqlash bloki) ===== */
         .approve { width: 58%; margin-left: auto; text-align: center; line-height: 1.35; }
         .approve .lead { text-align: right; margin-bottom: 2px; }
         .approve .org { font-weight: bold; }
         .approve-line { border: 0; border-top: 1px solid #000; margin: 6px 0 0; }
 
-        /* ===== Title ===== */
         .title-row { position: relative; margin: 18px 0 12px; text-align: center; }
         .title-row .title { font-weight: bold; font-size: 14px; }
         .title-row .date { position: absolute; right: 0; top: 0; font-weight: bold; }
 
-        /* ===== Meta (chap yorliq + o'ng qutili qiymat) ===== */
         .meta { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
         .meta td { padding: 3px 6px; vertical-align: middle; }
         .meta .lbl { width: 32%; border: 0; }
         .meta .val { border: 1px solid #000; font-weight: bold; }
 
-        /* ===== Asosiy jadval ===== */
         table.items { width: 100%; border-collapse: collapse; }
         table.items th, table.items td { border: 1px solid #000; padding: 4px 5px; }
         table.items th { text-align: center; font-weight: bold; vertical-align: middle; }
@@ -51,7 +130,6 @@
         .total-row .total-lbl { text-align: left; }
         .words-row td { font-weight: bold; text-align: center; padding: 5px; }
 
-        /* ===== Imzolar ===== */
         .signs { width: 100%; margin-top: 26px; border-collapse: collapse; }
         .signs td { padding: 14px 6px 0; font-weight: bold; vertical-align: bottom; width: 50%; }
         .sign-line { display: inline-block; min-width: 160px; border-bottom: 1px solid #000; margin-left: 8px; }
@@ -61,38 +139,34 @@
 
     {{-- ===== Tasdiqlash bloki ===== --}}
     <div class="approve">
-        <div class="lead">Тасдиқлайман:</div>
-        <div class="org">Жаҳон иқтисодиёти ва дипломатия университети</div>
-        <div class="org">Молия ва хўжалик масалалари бўйича ректор ўринбосари</div>
+        <div class="lead">{{ $T['approve'] }}</div>
+        <div class="org">{{ $T['org1'] }}</div>
+        <div class="org">{{ $T['org2'] }}</div>
         <hr class="approve-line">
     </div>
 
     {{-- ===== Sarlavha + sana ===== --}}
     <div class="title-row">
-        <span class="title">{{ $batch->id }} сонли ЮК ХАТИ (ТАЛАБНОМА)</span>
-        <span class="date">
-            @if ($docDate)
-                “{{ $docDate->format('d') }}” {{ $months[(int) $docDate->format('n')] }} {{ $docDate->format('Y') }} й.
-            @endif
-        </span>
+        <span class="title">{{ sprintf($T['title'], $batch->id) }}</span>
+        <span class="date">@if ($dateStr){{ $dateStr }}@endif</span>
     </div>
 
     {{-- ===== Meta ===== --}}
     <table class="meta">
         <tr>
-            <td class="lbl">Ташкилот - олувчининг номи</td>
+            <td class="lbl">{{ $T['m_recipient'] }}</td>
             <td class="val">{{ $recipient->full_name ?? '' }}</td>
         </tr>
         <tr>
-            <td class="lbl">Таркибий бўлими</td>
+            <td class="lbl">{{ $T['m_dept'] }}</td>
             <td class="val">{{ $recipient->department ?? '' }}&nbsp;</td>
         </tr>
         <tr>
-            <td class="lbl">Ташкилот (жўнатувчи)</td>
-            <td class="val">Марказий омбор</td>
+            <td class="lbl">{{ $T['m_sender'] }}</td>
+            <td class="val">{{ $T['m_sender_v'] }}</td>
         </tr>
         <tr>
-            <td class="lbl">Моддий жавобгар шахс</td>
+            <td class="lbl">{{ $T['m_person'] }}</td>
             <td class="val">{{ $batch->createdBy->full_name ?? '' }}</td>
         </tr>
     </table>
@@ -102,18 +176,18 @@
         <thead>
             <tr>
                 <th rowspan="2" style="width:3.5%;">№</th>
-                <th rowspan="2" style="width:27%;">Моддий қийматликлар-нинг<br>номи, нави ва ўлчами</th>
-                <th rowspan="2" style="width:7%;">Ўл. бир-<br>лиги</th>
-                <th colspan="2" style="width:16%;">Бухгалтерия ёзуви</th>
-                <th colspan="2" style="width:16%;">Микдор</th>
-                <th rowspan="2" style="width:13%;">Нархи, сўм</th>
-                <th rowspan="2" style="width:13%;">Сумма, сўм</th>
+                <th rowspan="2" style="width:27%;">{{ $T['h_name'] }}</th>
+                <th rowspan="2" style="width:7%;">{{ $T['h_unit'] }}</th>
+                <th colspan="2" style="width:16%;">{{ $T['h_acc'] }}</th>
+                <th colspan="2" style="width:16%;">{{ $T['h_qty'] }}</th>
+                <th rowspan="2" style="width:13%;">{{ $T['h_price'] }}</th>
+                <th rowspan="2" style="width:13%;">{{ $T['h_sum'] }}</th>
             </tr>
             <tr>
-                <th>дебет</th>
-                <th>кредит</th>
-                <th>талаб килин-<br>ган</th>
-                <th>берил-<br>ган</th>
+                <th>{{ $T['h_debit'] }}</th>
+                <th>{{ $T['h_credit'] }}</th>
+                <th>{{ $T['h_req'] }}</th>
+                <th>{{ $T['h_given'] }}</th>
             </tr>
         </thead>
         <tbody>
@@ -136,7 +210,7 @@
             @endforeach
 
             <tr class="total-row">
-                <td class="total-lbl" colspan="8">Итого:</td>
+                <td class="total-lbl" colspan="8">{{ $T['total'] }}</td>
                 <td class="r">{{ $money($total) }}</td>
             </tr>
             <tr class="words-row">
@@ -148,12 +222,12 @@
     {{-- ===== Imzolar ===== --}}
     <table class="signs">
         <tr>
-            <td>Бош ҳисобчи <span class="sign-line"></span></td>
-            <td>Хисобчи <span class="sign-line"></span></td>
+            <td>{{ $T['s_chief'] }} <span class="sign-line"></span></td>
+            <td>{{ $T['s_acc'] }} <span class="sign-line"></span></td>
         </tr>
         <tr>
-            <td>Олдим <span class="sign-line"></span></td>
-            <td>Топширдим <span class="sign-line"></span></td>
+            <td>{{ $T['s_recv'] }} <span class="sign-line"></span></td>
+            <td>{{ $T['s_deliv'] }} <span class="sign-line"></span></td>
         </tr>
     </table>
 
