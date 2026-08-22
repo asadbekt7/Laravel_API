@@ -29,8 +29,11 @@
             'appr_title' => 'Tasdiqlash holati',
             'appr_fio' => 'F.I.O.', 'appr_position' => 'Lavozim',
             'appr_status' => 'Holat', 'appr_date' => 'Sana',
-            'st_sent' => 'Yubordi', 'st_pending' => 'Kutilmoqda', 'st_active' => "Ko'rib chiqilmoqda",
+            'r_recipient' => 'Qabul qiluvchi', 'r_sender' => 'Yuboruvchi',
+            'r_level' => "%d-daraja imzolovchi",
+            'st_pending' => 'Kutilmoqda', 'st_active' => "Ko'rib chiqilmoqda",
             'st_approved' => 'Tasdiqladi', 'st_rejected' => 'Rad etdi',
+            'st_sent' => 'Yubordi', 'st_received' => 'Qabul qildi',
         ],
         'ru' => [
             'approve'  => 'Утверждаю:',
@@ -55,8 +58,11 @@
             'appr_title' => 'Статус подтверждения',
             'appr_fio' => 'Ф.И.О.', 'appr_position' => 'Должность',
             'appr_status' => 'Статус', 'appr_date' => 'Дата',
-            'st_sent' => 'Отправил', 'st_pending' => 'Ожидает', 'st_active' => 'На рассмотрении',
+            'r_recipient' => 'Получатель', 'r_sender' => 'Отправитель',
+            'r_level' => 'Подписант %d-го уровня',
+            'st_pending' => 'Ожидает', 'st_active' => 'На рассмотрении',
             'st_approved' => 'Подтвердил', 'st_rejected' => 'Отклонил',
+            'st_sent' => 'Отправил', 'st_received' => 'Принял',
         ],
         'en' => [
             'approve'  => 'Approved:',
@@ -81,8 +87,11 @@
             'appr_title' => 'Approval status',
             'appr_fio' => 'Full name', 'appr_position' => 'Position',
             'appr_status' => 'Status', 'appr_date' => 'Date',
-            'st_sent' => 'Sent', 'st_pending' => 'Pending', 'st_active' => 'In review',
+            'r_recipient' => 'Recipient', 'r_sender' => 'Sender',
+            'r_level' => 'Level %d signer',
+            'st_pending' => 'Pending', 'st_active' => 'In review',
             'st_approved' => 'Approved', 'st_rejected' => 'Rejected',
+            'st_sent' => 'Sent', 'st_received' => 'Accepted',
         ],
     ][$lang];
 
@@ -116,25 +125,31 @@
     $money = fn ($v) => number_format((float) $v, 2, ',', ' ');
     $dash  = fn ($v) => ($v === null || $v === '') ? '—' : $v;
 
-    $approvals = collect();
+    $accountantRoles = [$T['s_chief'], $T['s_acc']];
 
-    if ($batch->createdBy) {
-        $approvals->push([
-            'name'     => $batch->createdBy->full_name ?: $batch->createdBy->name,
-            'position' => null,
-            'status'   => 'sent',
-            'at'       => $batch->created_at,
-        ]);
-    }
-
-    foreach ($batch->signers as $signer) {
-        $approvals->push([
+    $approvals = $batch->signers->values()->map(function ($signer, int $index) use ($accountantRoles, $T) {
+        return [
             'name'     => $signer->user?->full_name ?: $signer->user?->name,
-            'position' => $signer->role_label,
+            'position' => $signer->role_label
+                ?: ($accountantRoles[$index] ?? sprintf($T['r_level'], $signer->level)),
             'status'   => $signer->status?->value,
             'at'       => $signer->responded_at,
-        ]);
-    }
+        ];
+    });
+
+    $approvals->push([
+        'name'     => $recipient->full_name ?? null,
+        'position' => $T['r_recipient'],
+        'status'   => $batch->completed_at ? 'received' : null,
+        'at'       => $batch->completed_at,
+    ]);
+
+    $approvals->push([
+        'name'     => $batch->createdBy?->full_name ?: $batch->createdBy?->name,
+        'position' => $T['r_sender'],
+        'status'   => $batch->created_at ? 'sent' : null,
+        'at'       => $batch->created_at,
+    ]);
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $lang }}">
@@ -268,21 +283,22 @@
             </tr>
         </tbody>
     </table>
-
     {{-- ===== Imzolar ===== --}}
-   {{-- <table class="signs">
-        <tr>
-            <td>{{ $T['s_chief'] }} <span class="sign-line"></span></td>
-            <td>{{ $T['s_acc'] }} <span class="sign-line"></span></td>
-        </tr>
-        <tr>
-            <td>{{ $T['s_recv'] }} <span class="sign-line"></span></td>
-            <td>{{ $T['s_deliv'] }} <span class="sign-line"></span></td>
-        </tr>
-    </table>--}}
+     <table class="signs">
+         <tr>
+             <td>{{ $T['s_chief'] }} <span class="sign-line"></span></td>
+             <td>{{ $T['s_acc'] }} <span class="sign-line"></span></td>
+         </tr>
+         <tr>
+             <td>{{ $T['s_recv'] }} <span class="sign-line"></span></td>
+             <td>{{ $T['s_deliv'] }} <span class="sign-line"></span></td>
+         </tr>
+     </table>
 
     {{-- ===== Tasdiqlash holati ===== --}}
-    @if ($approvals->isNotEmpty())
+
+    {{-- ===== Imzolar (tasdiqlash holati jadvali) ===== --}}
+    {{--@if ($approvals->isNotEmpty())
         <div class="approvals-block">
             <div class="approvals-title">{{ $T['appr_title'] }}</div>
 
@@ -302,7 +318,9 @@
                             <td class="appr-no">{{ $loop->iteration }}</td>
                             <td class="appr-fio">{{ $dash($approval['name']) }}</td>
                             <td class="appr-position">{{ $dash($approval['position']) }}</td>
-                            <td class="appr-status">{{ $T['st_'.$approval['status']] ?? $approval['status'] }}</td>
+                            <td class="appr-status">
+                                {{ $approval['status'] ? ($T['st_'.$approval['status']] ?? $approval['status']) : '—' }}
+                            </td>
                             <td class="appr-date">
                                 @if ($approval['at'])
                                     {{ $approval['at']->format('d.m.Y') }}
@@ -316,7 +334,7 @@
                 </tbody>
             </table>
         </div>
-    @endif
+    @endif--}}
 
 </body>
 </html>
