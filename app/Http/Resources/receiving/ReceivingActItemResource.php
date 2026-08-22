@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+//fix namesapce
 namespace App\Http\Resources\Receiving;
 
 use Illuminate\Http\Request;
