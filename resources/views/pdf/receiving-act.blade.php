@@ -20,6 +20,14 @@
             'total' => 'Jami',
             'delivered' => 'Topshirdi',
             'received' => 'Qabul qildi',
+
+            'appr_title' => 'Tasdiqlash holati',
+            'appr_fio' => 'F.I.O.',
+            'appr_position' => 'Lavozim',
+            'appr_status' => 'Holat',
+            'appr_date' => 'Sana',
+            'st_sent' => 'Yubordi',
+            'st_received' => 'Qabul qildi',
         ],
 
         'ru' => [
@@ -39,6 +47,14 @@
             'total' => 'Итого',
             'delivered' => 'Сдал',
             'received' => 'Принял',
+
+            'appr_title' => 'Статус подтверждения',
+            'appr_fio' => 'Ф.И.О.',
+            'appr_position' => 'Должность',
+            'appr_status' => 'Статус',
+            'appr_date' => 'Дата',
+            'st_sent' => 'Отправил',
+            'st_received' => 'Принял',
         ],
 
         'en' => [
@@ -58,6 +74,14 @@
             'total' => 'Total',
             'delivered' => 'Delivered',
             'received' => 'Accepted',
+
+            'appr_title' => 'Approval status',
+            'appr_fio' => 'Full name',
+            'appr_position' => 'Position',
+            'appr_status' => 'Status',
+            'appr_date' => 'Date',
+            'st_sent' => 'Sent',
+            'st_received' => 'Accepted',
         ],
     ][$lang];
 
@@ -318,6 +342,77 @@
             border-bottom: 1px solid #000;
             transform: translateY(-3px);
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | TASDIQLASH HOLATI
+        |--------------------------------------------------------------------------
+        */
+
+        .approvals-block {
+            margin-top: 26px;
+            page-break-inside: avoid;
+        }
+
+        .approvals-title {
+            margin-bottom: 8px;
+            text-align: center;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        table.approvals {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            border: 1px solid #000;
+        }
+
+        table.approvals th,
+        table.approvals td {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        table.approvals th {
+            text-align: center;
+            font-weight: bold;
+            line-height: 1.1;
+        }
+
+        .appr-no {
+            width: 7%;
+            text-align: center;
+        }
+
+        .appr-fio {
+            width: 29%;
+        }
+
+        .appr-position {
+            width: 31%;
+        }
+
+        .appr-status {
+            width: 15%;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .appr-date {
+            width: 18%;
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+            text-align: center;
+            white-space: nowrap;
+            line-height: 1.3;
+        }
+
+        .appr-time {
+            white-space: nowrap;
+        }
     </style>
 </head>
 
@@ -527,7 +622,7 @@
     SIGNATURES
 ============================================================ --}}
 
-<table class="signatures">
+{{--<table class="signatures">
     <tr>
 
         <td>
@@ -541,7 +636,72 @@
         </td>
 
     </tr>
-</table>
+</table>--}}
+
+
+{{-- ============================================================
+    TASDIQLASH HOLATI
+============================================================ --}}
+
+@if($act->approvals->isNotEmpty())
+
+    <div class="approvals-block">
+
+        <div class="approvals-title">
+            {{ $T['appr_title'] }}
+        </div>
+
+        <table class="approvals">
+
+            <thead>
+            <tr>
+                <th class="appr-no">{{ $T['no'] }}</th>
+                <th class="appr-fio">{{ $T['appr_fio'] }}</th>
+                <th class="appr-position">{{ $T['appr_position'] }}</th>
+                <th class="appr-status">{{ $T['appr_status'] }}</th>
+                <th class="appr-date">{{ $T['appr_date'] }}</th>
+            </tr>
+            </thead>
+
+            <tbody>
+
+            @foreach ($act->approvals as $approval)
+
+                <tr>
+                    <td class="appr-no">
+                        {{ $approval->rowNumber }}
+                    </td>
+
+                    <td class="appr-fio">
+                        {{ $dash($approval->fullName) }}
+                    </td>
+
+                    <td class="appr-position">
+                        {{ $dash($approval->position) }}
+                    </td>
+
+                    <td class="appr-status">
+                        {{ $T['st_'.$approval->statusKey] ?? $approval->statusKey }}
+                    </td>
+
+                    <td class="appr-date">
+                        {{ $dash($approval->date) }}
+
+                        @if($approval->time)
+                            <div class="appr-time">{{ $approval->time }}</div>
+                        @endif
+                    </td>
+                </tr>
+
+            @endforeach
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+@endif
 
 </body>
 </html>

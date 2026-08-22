@@ -22,7 +22,6 @@ use App\Http\Controllers\Api\TransferController;
 use App\Http\Controllers\Api\WarehouseBatchController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
 
 Route::get('/user', function (Request $request) {
     $user = $request->user();
@@ -165,19 +164,9 @@ Route::post('warehouse-batches/{batch}/sign', [WarehouseBatchController::class, 
 Route::post('warehouse-batches/{batch}/approve', [WarehouseBatchController::class, 'approve']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse-batches.approve');
 Route::post('warehouse-batches/{batch}/reject', [WarehouseBatchController::class, 'reject']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse-batches.approve');
 
-Route::get('warehouse-batches/{batch}/pdf', function (\App\Models\WarehouseBatch $batch, \Illuminate\Http\Request $request, \App\Services\PdfService $pdf) {
-    $lang = $request->query('lang');
-
-    if (in_array($lang, ['uz', 'ru', 'en'], true)) {
-        $batch->load(['entries.warehouse.unit', 'signers.user', 'createdBy']);
-
-        return $pdf->fromView('yuk-xati', ['batch' => $batch, 'lang' => $lang], "yuk-xati-{$batch->id}.pdf");
-    }
-
-    abort_unless($batch->file_path && Storage::disk('local')->exists($batch->file_path), 404);
-
-    return Storage::disk('local')->response($batch->file_path);
-})->name('warehouse-batches.pdf'); //todo ->middleware('signed')->
+Route::get('warehouse-batches/{batch}/pdf', [WarehouseBatchController::class, 'pdf'])
+    ->middleware('throttle:20,1')
+    ->name('warehouse-batches.pdf');
 
 Route::prefix('receiving')
     ->name('receiving.')
@@ -191,7 +180,7 @@ Route::prefix('receiving')
 
         Route::get('/{aktNumber}/pdf', 'pdf')
             ->where('aktNumber', '[A-Za-z0-9\-\.]+')
-            ->middleware('throttle:20,1') // PDF generatsiyasi CPU-og'ir — suiiste'moldan himoya
+            ->middleware('throttle:20,1')
             ->name('pdf');
     });
 

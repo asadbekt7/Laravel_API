@@ -6,7 +6,6 @@ use App\Enums\SignerLevelStatus;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\URL;
 
 class WarehouseBatchResource extends JsonResource
 {
@@ -34,8 +33,8 @@ class WarehouseBatchResource extends JsonResource
             ]),
             'active_level' => $activeSigner?->level,
             'can_act' => (bool) ($activeSigner && $userId && $activeSigner->user_id === $userId),
-            'pdf_url' => ($this->file_path && Route::has('warehouse-batches.pdf'))
-                ? URL::temporarySignedRoute('warehouse-batches.pdf', now()->addMinutes(10), ['batch' => $this->id])
+            'pdf_url' => Route::has('warehouse-batches.pdf')
+                ? route('warehouse-batches.pdf', ['batch' => $this->id], absolute: false)
                 : null,
             'entries' => $this->whenLoaded('entries', fn () => $this->entries->map(fn ($e) => [
                 'id' => $e->id,

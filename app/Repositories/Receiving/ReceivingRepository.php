@@ -61,7 +61,12 @@ final class ReceivingRepository
     public function findCompletedByAktNumber(string $aktNumber): Collection
     {
         return InformationModel::query()
-            ->with(['supplier:id,name', 'unit:id,name', 'assignee:id,name'])
+            ->with([
+                'supplier:id,name',
+                'unit:id,name',
+                'assignee:id,name,full_name',
+                'creator:id,name,full_name',
+            ])
             ->completed()
             ->where('akt_number', $aktNumber)
             ->orderBy('id')

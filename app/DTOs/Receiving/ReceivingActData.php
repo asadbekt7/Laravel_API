@@ -19,6 +19,7 @@ final readonly class ReceivingActData
 {
     /**
      * @param Collection<int, ReceivingActItemData> $items
+     * @param Collection<int, ReceivingApprovalData> $approvals Tasdiqlash holati jadvali
      */
     public function __construct(
         public string $aktNumber,
@@ -34,6 +35,7 @@ final readonly class ReceivingActData
         public Collection $items,
         public string $totalSum,
         public string $totalSumInWords,
+        public Collection $approvals,
     ) {
     }
 
@@ -67,6 +69,51 @@ final readonly class ReceivingActData
             items: $items,
             totalSum: $totalSum,
             totalSumInWords: SumToWordsConverter::convert($totalSum),
+            approvals: self::approvalsFromRows($rows),
         );
+    }
+
+    /**
+     *
+     * @param Collection<int, \App\Models\InformationModel> $rows
+     * @return Collection<int, ReceivingApprovalData>
+     */
+    private static function approvalsFromRows(Collection $rows): Collection
+    {
+        /** @var \App\Models\InformationModel $first */
+        $first = $rows->first();
+
+        $date = fn (?\DateTimeInterface $moment) => $moment?->format('d.m.Y');
+        $time = fn (?\DateTimeInterface $moment) => $moment?->format('H:i');
+
+        $approvals = collect();
+
+        if ($creator = $first->creator) {
+            $sentAt = $rows->min('created_at');
+
+            $approvals->push(new ReceivingApprovalData(
+                rowNumber: $approvals->count() + 1,
+                fullName: $creator->full_name ?: $creator->name,
+                position: null,
+                statusKey: 'sent',
+                date: $date($sentAt),
+                time: $time($sentAt),
+            ));
+        }
+
+        if ($assignee = $first->assignee) {
+            $acceptedAt = $rows->max('accepted_at');
+
+            $approvals->push(new ReceivingApprovalData(
+                rowNumber: $approvals->count() + 1,
+                fullName: $assignee->full_name ?: $assignee->name,
+                position: null,
+                statusKey: 'received',
+                date: $date($acceptedAt),
+                time: $time($acceptedAt),
+            ));
+        }
+
+        return $approvals;
     }
 }
