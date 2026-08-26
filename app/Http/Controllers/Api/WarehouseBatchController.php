@@ -10,6 +10,7 @@ use App\Http\Requests\WarehouseBatch\SignAsAccountantRequest;
 use App\Http\Requests\WarehouseBatch\StoreWarehouseBatchRequest;
 use App\Http\Resources\WarehouseBatchResource;
 use App\Models\WarehouseBatch;
+use App\Services\PdfService;
 use App\Services\WarehouseBatch\WarehouseBatchApprovalService;
 use App\Services\WarehouseBatch\WarehouseBatchCreationService;
 use App\Services\WarehouseBatch\WarehouseBatchSignService;
@@ -17,6 +18,7 @@ use App\Enums\SignerLevelStatus;
 use DomainException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class WarehouseBatchController extends Controller
 {
@@ -70,6 +72,26 @@ class WarehouseBatchController extends Controller
         $this->authorize('view', $batch);
 
         return response()->json(['data' => $batch->items()]);
+    }
+
+    public function pdf(Request $request, WarehouseBatch $batch, PdfService $pdf)
+    {
+        $this->authorize('view', $batch);
+
+        $fileName = "yuk-xati-{$batch->id}.pdf";
+        $lang = $request->query('lang');
+
+        if (in_array($lang, ['uz', 'ru', 'en'], true)) {
+            $batch->load(['entries.warehouse.unit', 'signers.user', 'createdBy']);
+
+            $document = $pdf->fromView('yuk-xati', ['batch' => $batch, 'lang' => $lang], $fileName);
+
+            return $request->boolean('download') ? $document->download($fileName) : $document;
+        }
+
+        abort_unless($batch->file_path && Storage::disk('local')->exists($batch->file_path), 404);
+
+        return Storage::disk('local')->response($batch->file_path);
     }
 
     public function signAsAccountant(SignAsAccountantRequest $request, WarehouseBatch $batch, WarehouseBatchSignService $service)

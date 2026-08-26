@@ -12,9 +12,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class MyUwedAuth
 {
+    private const UNSIGNED_QUERY = ['lang'];
+
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->hasValidSignature()) {
+        if ($request->hasValidSignatureWhileIgnoring(self::UNSIGNED_QUERY)) {
             return $next($request);
         }
 
