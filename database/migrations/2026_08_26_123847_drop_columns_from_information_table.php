@@ -9,6 +9,10 @@ return new class extends Migration
     /**
      * `information` jadvalidan quyidagi ustunlarni olib tashlaydi:
      * product_name, unit_id, quantity, price, akt_number, akt_date, assignee_id
+     * (bular endi information_items / warehouse jadvallarida yashaydi)
+     *
+     * Va yangi `reject_reason` ustunini qo'shadi — ombor tomonidan rad
+     * etilganda sababni saqlash uchun.
      *
      * OGOHLANTIRISH (foydalanuvchi tomonidan tasdiqlangan qaror):
      * bu 7 ta ustundagi production'dagi joriy qiymatlar hech qayerga
@@ -28,7 +32,7 @@ return new class extends Migration
             $table->dropForeign('information_assignee_id_foreign');
         });
 
-        // 2-qadam: endi ustunlarni xavfsiz o'chirish mumkin
+        // 2-qadam: keraksiz ustunlarni o'chiramiz VA reject_reason'ni qo'shamiz
         Schema::table('information', function (Blueprint $table) {
             $table->dropColumn([
                 'product_name',
@@ -39,6 +43,8 @@ return new class extends Migration
                 'akt_date',
                 'assignee_id',
             ]);
+
+            $table->text('reject_reason')->nullable()->after('completed_at');
         });
     }
 
@@ -50,6 +56,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('information', function (Blueprint $table) {
+            $table->dropColumn('reject_reason');
+
             $table->string('product_name')->nullable();
             $table->foreignId('unit_id')->nullable()
                 ->constrained('units')->cascadeOnUpdate()->cascadeOnDelete();

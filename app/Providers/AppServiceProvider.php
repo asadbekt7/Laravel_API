@@ -18,7 +18,4 @@ class AppServiceProvider extends ServiceProvider
     {
         //
     }
-    protected $policies = [
-        InformationModel::class => \App\Policies\InformationPolicy::class,
-    ];
 }

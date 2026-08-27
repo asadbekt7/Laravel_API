@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-use App\Enums\ItemType;
-use App\Http\Filters\QueryFilter;
-use Illuminate\Database\Eloquent\Builder;
+use App\Enums\WarehouseAktStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WarehouseModel extends Model
 {
@@ -14,27 +15,20 @@ class WarehouseModel extends Model
 
     protected $fillable = [
         'information_id',
-        'assignee_id',
-        'name',
-        'type_id',
-        'category_id',
-        'model_id',
-        'quantity',
-        'unit_id',
         'location_id',
-        'product_price',
         'description',
+        'assignee_id',
+        'akt_number',
+        'akt_date',
+        'status',
     ];
 
-    protected $casts = [
-        'quantity'      => 'integer',
-        'staff_id'      => 'integer',
-        'product_price' => 'decimal:2',
-    ];
-
-    public function scopeFilter(Builder $query, QueryFilter $filter): Builder
+    protected function casts(): array
     {
-        return $filter->apply($query);
+        return [
+            'akt_date' => 'date',
+            'status'   => WarehouseAktStatus::class,
+        ];
     }
 
     public function information(): BelongsTo
@@ -42,28 +36,18 @@ class WarehouseModel extends Model
         return $this->belongsTo(InformationModel::class, 'information_id');
     }
 
-    public function type(): BelongsTo
-    {
-        return $this->belongsTo(TypeModel::class);
-    }
-
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(CategoryModel::class);
-    }
-
-    public function model(): BelongsTo
-    {
-        return $this->belongsTo(GoodModel::class, 'model_id');
-    }
-
-    public function unit(): BelongsTo
-    {
-        return $this->belongsTo(UnitModel::class);
-    }
-
     public function location(): BelongsTo
     {
-        return $this->belongsTo(LocationModel::class);
+        return $this->belongsTo(LocationModel::class, 'location_id');
+    }
+
+    public function assignee(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'assignee_id');
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(WarehouseItem::class, 'warehouse_id');
     }
 }

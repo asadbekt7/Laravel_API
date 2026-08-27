@@ -122,7 +122,8 @@ Route::prefix('bugalteriya')->group(function () {
 //Information
 Route::prefix('information')->group(function () {
     Route::get('pending', [InformationController::class, 'pending']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.informations.view');
-
+    Route::get('rejected', [InformationController::class, 'rejected']);
+    //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.informations.view');
     Route::get('',  [InformationController::class, 'index']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.informations.view');
     Route::post('', [InformationController::class, 'store']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.informations.create');
 
@@ -141,13 +142,14 @@ Route::prefix('information')->group(function () {
 
 //Warehouse
 Route::prefix('warehouse')->group(function () {
-    Route::get('/',           [WarehouseController::class, 'index'])->middleware('perm:ombor.warehouse.view');
-    Route::get('/item-types', [WarehouseController::class, 'itemTypes'])->middleware('perm:ombor.warehouse.view');
-    Route::get('/stats/categories', [WarehouseController::class, 'statsCategories']);
-    Route::get('/stats/models',     [WarehouseController::class, 'statsModels']);
+    Route::get('pending-informations', [WarehouseController::class, 'pendingInformations']);
+    //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse.view');
 
-    Route::post('/',          [WarehouseController::class, 'store'])->middleware('perm:ombor.warehouse.create');
-    Route::get('/{id}',       [WarehouseController::class, 'show'])->middleware('perm:ombor.warehouse.view');
+    Route::post('{information}/accept', [WarehouseController::class, 'accept']);
+    //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse.accept');
+
+    Route::post('{information}/reject', [WarehouseController::class, 'reject']);
+    //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse.reject');
 });
 
 //WarehouseTransfer todo ->middleware('perm:ombor.warehouse.update')

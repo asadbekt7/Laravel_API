@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InformationModel extends Model
@@ -24,7 +25,7 @@ class InformationModel extends Model
         'bildirishnoma_number', 'bildirishnoma_date', 'bildirishnoma_file_path', 'bildirishnoma_file_name',
         'ishonchnoma_number', 'ishonchnoma_date', 'ishonchnoma_file_path', 'ishonchnoma_file_name',
         'hisob_faktura', 'hisob_faktura_date', 'hisob_faktura_file_path', 'hisob_faktura_file_name',
-        'creator_id', 'status',
+        'creator_id', 'status', 'reject_reason',
     ];
 
     protected function casts(): array
@@ -55,7 +56,6 @@ class InformationModel extends Model
 
     public function supplier(): BelongsTo
     {
-        // Loyihangizdagi haqiqiy Supplier model nomiga moslang.
         return $this->belongsTo(SupplierModel::class, 'supplier_id');
     }
 
@@ -64,15 +64,21 @@ class InformationModel extends Model
         return $this->belongsTo(\App\Models\User::class, 'creator_id');
     }
 
+    public function warehouse(): HasOne
+    {
+        return $this->hasOne(WarehouseModel::class, 'information_id');
+    }
+
     public function scopePending(Builder $query): Builder
     {
         return $query->where('status', InformationStatus::Pending);
     }
 
-    /**
-     * Statuslar orasidagi o'tish — enum ichidagi TRANSITIONS jadvaliga tayanadi.
-     * Ruxsat etilmagan o'tishda false qaytaradi (Controller shu yerda 422 beradi).
-     */
+    public function scopeRejected(Builder $query): Builder
+    {
+        return $query->where('status', InformationStatus::Rejected);
+    }
+
     public function transitionTo(InformationStatus $target): bool
     {
         if (! $this->status->canTransitionTo($target)) {
@@ -90,5 +96,37 @@ class InformationModel extends Model
         }
 
         return $this->update($attributes);
+    }
+
+    /**
+     * Ombor tomonidan rad etish — warehouse jadvaliga umuman tegmaydi,
+     * faqat status + sababni yozadi.
+     */
+    public function reject(string $reason): bool
+    {
+        if (! $this->status->canTransitionTo(InformationStatus::Rejected)) {
+            return false;
+        }
+
+        return $this->update([
+            'status'        => InformationStatus::Rejected,
+            'reject_reason' => $reason,
+        ]);
+    }
+
+    /**
+     * Rad etilgan ma'lumotni foydalanuvchi to'g'irlab, qayta "pending"
+     * navbatiga qaytarishi (resubmit). reject_reason tozalanadi.
+     */
+    public function resubmit(): bool
+    {
+        if (! $this->status->canTransitionTo(InformationStatus::Pending)) {
+            return false;
+        }
+
+        return $this->update([
+            'status'        => InformationStatus::Pending,
+            'reject_reason' => null,
+        ]);
     }
 }

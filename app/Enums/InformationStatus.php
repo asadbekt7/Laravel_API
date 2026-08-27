@@ -8,17 +8,20 @@ enum InformationStatus: string
 {
     case Pending    = 'pending';
     case Accepted   = 'accepted';
+    case Rejected   = 'rejected';
     case InProgress = 'in_progress';
     case Completed  = 'completed';
 
     /**
      * Ruxsat etilgan status o'tishlari (oddiy state machine).
-     * Bu yerda tekshirish orqali "Pending'dan to'g'ridan-to'g'ri Completed'ga"
-     * kabi noto'g'ri sakrashlar bloklanadi.
+     * Key - joriy status, Value - o'sha statusdan borish mumkin bo'lgan statuslar ro'yxati.
      */
     private const TRANSITIONS = [
-        self::Pending->value    => [self::Accepted],
+        self::Pending->value    => [self::Accepted, self::Rejected],
         self::Accepted->value   => [self::InProgress],
+        // Rejected'dan Pending'ga qaytish - foydalanuvchi ma'lumotni
+        // to'g'irlab qayta yuborganda (resubmit) ishlatiladi.
+        self::Rejected->value   => [self::Pending],
         self::InProgress->value => [self::Completed],
         self::Completed->value  => [],
     ];
@@ -33,6 +36,7 @@ enum InformationStatus: string
         return match ($this) {
             self::Pending    => 'Kutilmoqda',
             self::Accepted   => 'Qabul qilingan',
+            self::Rejected   => 'Rad etilgan',
             self::InProgress => 'Jarayonda',
             self::Completed  => 'Yakunlangan',
         };

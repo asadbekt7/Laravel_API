@@ -76,12 +76,16 @@ class InformationController extends Controller
             )
             : null;
 
+        $wasRejected = $information->status === InformationStatus::Rejected;
+
         try {
             $updated = $this->service->update($information, $request->validated(), $items);
 
             return response()->json([
-                'message' => 'Muvaffaqiyatli yangilandi.',
-                'data'    => new InformationResource($updated),
+                'message' => $wasRejected
+                    ? "Muvaffaqiyatli to'g'irlandi va qayta ko'rib chiqish uchun yuborildi."
+                    : 'Muvaffaqiyatli yangilandi.',
+                'data' => new InformationResource($updated),
             ]);
         } catch (\Throwable $e) {
             Log::error('Information update xatosi', ['error' => $e->getMessage(), 'id' => $information->id]);
@@ -139,5 +143,15 @@ class InformationController extends Controller
             'message' => 'Ish muvaffaqiyatli yakunlandi.',
             'data'    => new InformationResource($information->fresh(['supplier', 'creator', 'items.unit'])),
         ]);
+    }
+    public function rejected(Request $request): AnonymousResourceCollection
+    {
+        $perPage = min($request->integer('per_page', 15), 100);
+        $filters = [
+            'status'        => InformationStatus::Rejected->value,
+            'created_by_me' => true,
+        ];
+
+        return InformationResource::collection($this->service->paginate($filters, $perPage));
     }
 }

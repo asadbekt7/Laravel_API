@@ -1,163 +1,97 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api;
 
-use App\Enums\ItemType;
+use App\DTOs\Warehouse\WarehouseAcceptData;
+use App\DTOs\Warehouse\WarehouseItemClassificationData;
 use App\Http\Controllers\Controller;
-use App\Http\Filters\WarehouseFilter;
-use App\Http\Requests\Warehouse\StoreWarehouseRequest;
-use App\Models\CategoryModel;
-use App\Models\GoodModel;
+use App\Http\Requests\Warehouse\AcceptWarehouseRequest;
+use App\Http\Requests\Warehouse\RejectWarehouseRequest;
+use App\Http\Resources\Information\InformationResource;
+use App\Http\Resources\Warehouse\WarehouseResource;
 use App\Models\InformationModel;
-use App\Models\TypeModel;
-use App\Models\WarehouseModel;
+use App\Services\InformationService;
+use App\Services\WarehouseAcceptanceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class WarehouseController extends Controller
 {
-    private array $relations = [
-        'information',
-        'type',
-        'category',
-        'model',
-        'unit',
-        'location',
-    ];
-
-    // GET /api/warehouse
-    public function index(WarehouseFilter $filter): JsonResponse
-    {
-        $query = WarehouseModel::with($this->relations)
-            ->filter($filter);
-
-        $filter->applySorting($query, $filter->request);
-
-        $data = $query->paginate($filter->getPerPage($filter->request))
-            ->appends($filter->request->query());
-
-        return response()->json($data);
+    public function __construct(
+        private readonly WarehouseAcceptanceService $acceptanceService,
+        private readonly InformationService $informationService,
+    ) {
     }
 
-    // POST /api/warehouse
-    public function store(StoreWarehouseRequest $request): JsonResponse
+    /**
+     * Ombor mudiri ko'rishi kerak bo'lgan, hali qaror qabul qilinmagan
+     * information'lar ro'yxati.
+     *
+     * GET /api/warehouse/pending-informations
+     */
+    public function pendingInformations(Request $request): AnonymousResourceCollection
     {
-        $data        = $request->validated();
-        $information = InformationModel::findOrFail($data['information_id']);
+        $perPage = min($request->integer('per_page', 15), 100);
 
-        // item_type / expiry_date / statya mantiqi OLIB TASHLANDI —
-        // bu maydonlar warehouse'da yo'q, buxgalter keyin to'ldiradi.
+        $informations = $this->informationService->paginate(['status' => 'pending'], $perPage);
 
-        $warehouse = WarehouseModel::create([
-            ...$data,
-            // 4 ta maydon Information'dan avtomatik olinadi —
-            // frontend yuborgan qiymatlar emas
-            'name'          => $information->product_name,
-            'quantity'      => $information->quantity,
-            'unit_id'       => $information->unit_id,
-            'product_price' => $information->price,
-            'assignee_id'   => auth()->id(), // kiritayotgan odam avtomatik
-        ]);
-        $warehouse->load($this->relations);
-
-        return response()->json([
-            'message' => 'Muvaffaqiyatli yaratildi',
-            'data'    => $warehouse,
-        ], 201);
+        return InformationResource::collection($informations);
     }
 
-    // GET /api/warehouse/{id}
-    public function show(int $id): JsonResponse
+    /**
+     * POST /api/warehouse/{information}/accept
+     *
+     * Qabul qilishda warehouse.status har doim DEFAULT ACCEPTED bo'ladi.
+     */
+    public function accept(AcceptWarehouseRequest $request, InformationModel $information): JsonResponse
     {
-        $warehouse = WarehouseModel::with($this->relations)->findOrFail($id);
+        $items = array_map(
+            fn (array $item) => WarehouseItemClassificationData::fromArray($item),
+            $request->validated('items')
+        );
 
-        return response()->json(['data' => $warehouse]);
+        $data = new WarehouseAcceptData(
+            aktNumber: $request->validated('akt_number'),
+            aktDate: $request->validated('akt_date'),
+            locationId: (int) $request->validated('location_id'),
+            description: $request->validated('description'),
+            items: $items,
+        );
+
+        try {
+            $warehouse = $this->acceptanceService->accept($information, $data);
+
+            return response()->json([
+                'message' => 'Omborga muvaffaqiyatli qabul qilindi.',
+                'data'    => new WarehouseResource($warehouse),
+            ], 201);
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
 
-    public function itemTypes(): JsonResponse
+    /**
+     * POST /api/warehouse/{information}/reject
+     *
+     * DIQQAT: reject holatida `warehouse` jadvaliga hech narsa yozilmaydi -
+     * faqat information.status = Rejected va reject_reason to'ldiriladi.
+     */
+    public function reject(RejectWarehouseRequest $request, InformationModel $information): JsonResponse
     {
-        return response()->json(['data' => ItemType::options()]);
-    }
+        $rejected = $this->acceptanceService->reject($information, $request->validated('reject_reason'));
 
-    public function statsCategories(Request $request): JsonResponse
-    {
-        $typeId = (int) ($request->query('type_id') ?: 2);
-
-        $type = TypeModel::find($typeId);
-        if (! $type) {
-            return response()->json(['message' => 'Type topilmadi'], 404);
+        if (! $rejected) {
+            return response()->json([
+                'message' => "Bu ma'lumotni rad etib bo'lmaydi - u allaqachon ko'rib chiqilgan.",
+            ], 422);
         }
 
-        $categories = CategoryModel::where('type_id', $typeId)
-            ->orderBy('name')
-            ->get(['id', 'name']);
-
-        $modelCounts = GoodModel::whereIn('category_id', $categories->pluck('id'))
-            ->select('category_id', DB::raw('COUNT(*) as c'))
-            ->groupBy('category_id')
-            ->pluck('c', 'category_id');
-
-        $sums = WarehouseModel::query()
-            ->leftJoin('models', 'models.id', '=', 'warehouse.model_id')
-            ->where('warehouse.type_id', $typeId)
-            ->select(
-                DB::raw('COALESCE(warehouse.category_id, models.category_id) as cat_id'),
-                DB::raw('SUM(warehouse.quantity) as q')
-            )
-            ->groupBy(DB::raw('COALESCE(warehouse.category_id, models.category_id)'))
-            ->pluck('q', 'cat_id');
-
-        $out = $categories->map(fn ($c) => [
-            'id'             => (int) $c->id,
-            'name'           => $c->name,
-            'model_count'    => (int) ($modelCounts[$c->id] ?? 0),
-            'total_quantity' => (int) ($sums[$c->id] ?? 0),
-        ])->values();
-
         return response()->json([
-            'type'           => ['id' => $type->id, 'name' => $type->name],
-            'category_count' => $out->count(),
-            'total_quantity' => (int) $out->sum('total_quantity'),
-            'categories'     => $out,
-        ]);
-    }
-
-    public function statsModels(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'category_id' => ['required', 'integer'],
-        ]);
-        $categoryId = (int) $validated['category_id'];
-
-        $category = CategoryModel::with('type')->find($categoryId);
-        if (! $category) {
-            return response()->json(['message' => 'Kategoriya topilmadi'], 404);
-        }
-
-        $models = GoodModel::where('category_id', $categoryId)
-            ->orderBy('name')
-            ->get(['id', 'name']);
-
-        $sums = WarehouseModel::whereIn('model_id', $models->pluck('id'))
-            ->select('model_id', DB::raw('SUM(quantity) as q'))
-            ->groupBy('model_id')
-            ->pluck('q', 'model_id');
-
-        $out = $models->map(fn ($m) => [
-            'id'             => (int) $m->id,
-            'name'           => $m->name,
-            'total_quantity' => (int) ($sums[$m->id] ?? 0),
-        ])->values();
-
-        return response()->json([
-            'type'           => $category->type
-                ? ['id' => $category->type->id, 'name' => $category->type->name]
-                : null,
-            'category'       => ['id' => $category->id, 'name' => $category->name],
-            'model_count'    => $out->count(),
-            'total_quantity' => (int) $out->sum('total_quantity'),
-            'models'         => $out,
+            'message' => 'Rad etildi.',
+            'data'    => new InformationResource($information->fresh()),
         ]);
     }
 }

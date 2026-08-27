@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Information;
 
+use App\Enums\InformationStatus;
 use App\Models\InformationModel;
 use App\Services\FileStorage\InformationFileUploaderInterface;
 use App\Support\InformationFileFields;
@@ -18,13 +19,17 @@ final readonly class UpdateInformationAction
     }
 
     /**
-     * @param  \App\DTO\InformationItemData[]|null  $items  null => itemlar o'zgartirilmaydi
+     * @param  \App\DTOs\InformationItemData[]|null  $items  null => itemlar o'zgartirilmaydi
      */
     public function execute(InformationModel $information, array $validated, ?array $items): InformationModel
     {
         $newPaths = [];
         $oldPaths = [];
         $data     = $validated;
+
+        // Rejected bo'lsa - muvaffaqiyatli tahrirlangandan keyin avtomatik
+        // "pending"ga qaytaramiz (resubmit).
+        $wasRejected = $information->status === InformationStatus::Rejected;
 
         try {
             foreach (InformationFileFields::MAP as $prefix => $folder) {
@@ -50,7 +55,10 @@ final readonly class UpdateInformationAction
                 $this->syncItemsAction->execute($information, $items);
             }
 
-            // Fayllar faqat DB muvaffaqiyatli yangilangandan keyin o'chiriladi.
+            if ($wasRejected) {
+                $information->resubmit();
+            }
+
             foreach ($oldPaths as $oldPath) {
                 $this->uploader->delete($oldPath);
             }

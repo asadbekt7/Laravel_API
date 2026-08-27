@@ -11,14 +11,14 @@ use App\Models\User;
 class InformationPolicy
 {
     /**
-     * Faqat yaratgan foydalanuvchi VA faqat "pending" holatda tahrirlay oladi.
-     * (accepted/in_progress/completed bosqichida header/itemlar o'zgarmasligi
-     * kerak — bu biznes qoidasi eski kodda ham bor edi, saqlab qoldim.)
+     * Faqat yaratgan foydalanuvchi VA faqat quyidagi holatlarda tahrirlay oladi:
+     *  - Pending  -> hali ombor ko'rib chiqmagan.
+     *  - Rejected -> ombor rad etgan, xatoni to'g'irlab qayta yuborish uchun.
      */
     public function update(User $user, InformationModel $information): bool
     {
         return $information->creator_id === $user->id
-            && $information->status === InformationStatus::Pending;
+            && in_array($information->status, [InformationStatus::Pending, InformationStatus::Rejected], true);
     }
 
     public function delete(User $user, InformationModel $information): bool
