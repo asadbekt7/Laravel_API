@@ -1,300 +1,143 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\ContractAPI;
 
+use App\DTOs\InformationItemData;
 use App\Enums\InformationStatus;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Information\BulkInformationRequest;
 use App\Http\Requests\Information\StoreInformationRequest;
+use App\Http\Requests\Information\UpdateInformationRequest;
 use App\Http\Resources\Information\InformationResource;
 use App\Models\InformationModel;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use App\Services\InformationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class InformationController extends Controller
 {
-    /**
-     * Hujjat prefikslari va saqlanadigan papkalar.
-     * Request'da maydon: {prefix}_file (masalan contract_file)
-     * Bazada ustunlar:   {prefix}_file_path, {prefix}_file_name
-     */
-    private const FILE_FIELDS = [
-        'contract'      => 'contracts',
-        'bildirishnoma' => 'bildirishnomalar',
-        'ishonchnoma'   => 'ishonchnomalar',
-        'hisob_faktura' => 'hisob_fakturalar',
-    ];
-
-    /* ----------------------------------------------------------------
-     * Yordamchi metodlar
-     * ---------------------------------------------------------------- */
-
-    /**
-     * Request'dagi fayllarni saqlab, $data ga path/name qo'shadi.
-     * Saqlangan path'lar $storedPaths ga yig'iladi — xato bo'lsa
-     * ularni tozalash uchun.
-     */
-    private function storeFiles(Request $request, array $data, array &$storedPaths): array
+    public function __construct(private readonly InformationService $service)
     {
-        foreach (self::FILE_FIELDS as $prefix => $folder) {
-            if (! $request->hasFile("{$prefix}_file")) {
-                continue;
-            }
-
-            $file = $request->file("{$prefix}_file");
-            $path = $file->store("informations/{$folder}", 'public');
-
-            $storedPaths[] = $path;
-
-            $data["{$prefix}_file_path"] = $path;
-            $data["{$prefix}_file_name"] = $file->getClientOriginalName();
-        }
-
-        // Fayl maydonlarining o'zi bazaga yozilmasligi kerak
-        foreach (array_keys(self::FILE_FIELDS) as $prefix) {
-            unset($data["{$prefix}_file"]);
-        }
-
-        return $data;
     }
 
-    private function deleteFiles(array $paths): void
-    {
-        foreach ($paths as $path) {
-            if ($path && Storage::disk('public')->exists($path)) {
-                Storage::disk('public')->delete($path);
-            }
-        }
-    }
-
-    /* ================================================================
-     * INDEX — Ro'yxat (filter + qidiruv + pagination)
-     * GET /api/information
-     * ================================================================ */
     public function index(Request $request): AnonymousResourceCollection
     {
-        $informations = InformationModel::with('supplier', 'unit', 'creator', 'assignee')
-            // Qidiruv shartlari closure ichida — boshqa filtrlarni buzmaydi
-            ->when($request->search, fn ($q, $search) => $q->where(function ($q) use ($search) {
-                $q->where('name', 'ilike', "%{$search}%")
-                    ->orWhere('contract_number', 'ilike', "%{$search}%")
-                    ->orWhere('product_name', 'ilike', "%{$search}%");
-            }))
-            ->when($request->supplier_id, fn ($q, $id) => $q->where('supplier_id', $id))
-            ->when($request->from_date, fn ($q, $date) => $q->whereDate('contract_date', '>=', $date))
-            ->when($request->to_date, fn ($q, $date) => $q->whereDate('contract_date', '<=', $date))
-            ->when($request->status, function ($q, $status) {
-                if ($enum = InformationStatus::tryFrom($status)) {
-                    $q->where('status', $enum);
-                }
-            })
-            ->when($request->boolean('assigned_to_me'), fn ($q) => $q->assignedTo(auth()->id()))
-            ->when($request->boolean('created_by_me'), fn ($q) => $q->where('creator_id', auth()->id()))
-            ->latest()
-            ->paginate(min($request->integer('per_page', 15), 100));
+        $filters = $request->only(['search', 'supplier_id', 'from_date', 'to_date', 'status', 'created_by_me']);
+        $perPage = min($request->integer('per_page', 15), 100);
 
-        return InformationResource::collection($informations);
+        return InformationResource::collection($this->service->paginate($filters, $perPage));
     }
 
-    /* ================================================================
-     * PENDING — Qabul qilinishi kutilayotganlar
-     * GET /api/information/pending
-     * ================================================================ */
     public function pending(Request $request): AnonymousResourceCollection
     {
-        $informations = InformationModel::with('supplier', 'unit', 'creator')
-            ->pending()
-            ->latest()
-            ->paginate(min($request->integer('per_page', 15), 100));
+        $perPage = min($request->integer('per_page', 15), 100);
+        $filters = ['status' => InformationStatus::Pending->value];
 
-        return InformationResource::collection($informations);
+        return InformationResource::collection($this->service->paginate($filters, $perPage));
     }
 
-    /* ================================================================
-     * MY TASKS — Menga biriktirilgan ishlar
-     * GET /api/information/my-tasks
-     * ================================================================ */
-    public function myTasks(Request $request): AnonymousResourceCollection
-    {
-        $informations = InformationModel::with('supplier', 'unit', 'creator')
-            ->assignedTo(auth()->id())
-            ->when($request->status, function ($q, $status) {
-                if ($enum = InformationStatus::tryFrom($status)) {
-                    $q->where('status', $enum);
-                }
-            })
-            ->latest()
-            ->paginate(min($request->integer('per_page', 15), 100));
-
-        return InformationResource::collection($informations);
-    }
-
-    /* ================================================================
-     * SHOW — Bitta yozuv
-     * GET /api/information/{information}
-     * ================================================================ */
     public function show(InformationModel $information): InformationResource
     {
         return new InformationResource(
-            $information->load('supplier', 'unit', 'creator', 'assignee')
+            $information->load('supplier', 'creator', 'items.unit')
         );
     }
 
-    /* ================================================================
-     * STORE — Yaratish
-     * POST /api/information
-     * (creator_id va status=Pending model booted() ichida avtomatik)
-     * ================================================================ */
     public function store(StoreInformationRequest $request): JsonResponse
     {
-        $storedPaths = [];
+        $items = array_map(
+            fn (array $item) => InformationItemData::fromArray($item),
+            $request->validated('items')
+        );
 
         try {
-            // Fayllar transaction'dan TASHQARIDA saqlanadi —
-            // rollback bo'lsa ularni o'zimiz tozalaymiz
-            $data = $this->storeFiles($request, $request->validated(), $storedPaths);
-
-            $information = DB::transaction(
-                fn () => InformationModel::create($data)
-            );
+            $information = $this->service->create($request->validated(), $items);
 
             return response()->json([
                 'message' => 'Muvaffaqiyatli saqlandi.',
-                'data'    => new InformationResource(
-                    $information->load('supplier', 'unit', 'creator')
-                ),
+                'data'    => new InformationResource($information),
             ], 201);
-
         } catch (\Throwable $e) {
-            $this->deleteFiles($storedPaths);
             Log::error('Information store xatosi', ['error' => $e->getMessage()]);
 
-            return response()->json([
-                'message' => 'Saqlashda xatolik yuz berdi.',
-            ], 500);
+            return response()->json(['message' => 'Saqlashda xatolik yuz berdi.'], 500);
         }
     }
 
-    /* ================================================================
-     * BULK STORE — Bitta hujjat to'plami, bir nechta mahsulot
-     * POST /api/information/bulk
-     * ================================================================ */
-    public function bulkStore(BulkInformationRequest $request): JsonResponse
+    public function update(UpdateInformationRequest $request, InformationModel $information): JsonResponse
     {
-        $storedPaths = [];
+        $items = $request->has('items')
+            ? array_map(
+                fn (array $item) => InformationItemData::fromArray($item, isset($item['id']) ? (int) $item['id'] : null),
+                $request->validated('items')
+            )
+            : null;
 
         try {
-            $data = $this->storeFiles($request, $request->validated(), $storedPaths);
-
-            $items = $data['items'];
-            unset($data['items']);
-
-            /** @var EloquentCollection $created */
-            $created = DB::transaction(function () use ($items, $data) {
-                $created = new EloquentCollection();
-
-                foreach ($items as $item) {
-                    $created->push(InformationModel::create(array_merge($data, $item)));
-                }
-
-                return $created;
-            });
+            $updated = $this->service->update($information, $request->validated(), $items);
 
             return response()->json([
-                'message' => $created->count() . ' ta mahsulot muvaffaqiyatli saqlandi.',
-                'data'    => InformationResource::collection(
-                    $created->load('supplier', 'unit', 'creator')
-                ),
-            ], 201);
-
+                'message' => 'Muvaffaqiyatli yangilandi.',
+                'data'    => new InformationResource($updated),
+            ]);
         } catch (\Throwable $e) {
-            $this->deleteFiles($storedPaths);
-            Log::error('Information bulk store xatosi', ['error' => $e->getMessage()]);
+            Log::error('Information update xatosi', ['error' => $e->getMessage(), 'id' => $information->id]);
 
-            return response()->json([
-                'message' => 'Saqlashda xatolik yuz berdi.',
-            ], 500);
+            return response()->json(['message' => 'Yangilashda xatolik yuz berdi.'], 500);
         }
     }
 
-    /* ================================================================
-     * STATUS BOSHQARUVI — hammasi POST, model metodlariga tayanadi
-     * ================================================================ */
+    public function destroy(InformationModel $information): JsonResponse
+    {
+        $this->authorize('delete', $information);
 
-    /**
-     * POST /api/information/{information}/accept
-     */
+        $this->service->delete($information);
+
+        return response()->json(['message' => "Muvaffaqiyatli o'chirildi."]);
+    }
+
     public function accept(InformationModel $information): JsonResponse
     {
-        if (! $information->accept()) {
+        if (! $this->service->accept($information)) {
             return response()->json([
-                'message' => 'Bu ma\'lumotni qabul qilib bo\'lmaydi. U allaqachon qabul qilingan yoki yakunlangan.',
+                'message' => "Bu ma'lumotni qabul qilib bo'lmaydi. U allaqachon qabul qilingan yoki yakunlangan.",
             ], 422);
         }
 
         return response()->json([
             'message' => 'Muvaffaqiyatli qabul qilindi.',
-            'data'    => new InformationResource(
-                $information->load('supplier', 'unit', 'creator', 'assignee')
-            ),
+            'data'    => new InformationResource($information->fresh(['supplier', 'creator', 'items.unit'])),
         ]);
     }
 
-    /**
-     * POST /api/information/{information}/start
-     */
     public function start(InformationModel $information): JsonResponse
     {
-        // Aniqroq xabar uchun: status to'g'ri, lekin boshqa odam bosayotgan bo'lsa — 403
-        if ($information->status === InformationStatus::Accepted
-            && auth()->id() !== $information->assignee_id) {
+        if (! $this->service->start($information)) {
             return response()->json([
-                'message' => 'Faqat qabul qilgan foydalanuvchi ishni boshlashi mumkin.',
-            ], 403);
-        }
-
-        if (! $information->startProgress()) {
-            return response()->json([
-                'message' => 'Ishni boshlab bo\'lmaydi. Avval ma\'lumot qabul qilingan bo\'lishi kerak.',
+                'message' => "Ishni boshlab bo'lmaydi. Avval ma'lumot qabul qilingan bo'lishi kerak.",
             ], 422);
         }
 
         return response()->json([
             'message' => 'Ish boshlandi.',
-            'data'    => new InformationResource(
-                $information->load('supplier', 'unit', 'creator', 'assignee')
-            ),
+            'data'    => new InformationResource($information->fresh(['supplier', 'creator', 'items.unit'])),
         ]);
     }
 
-    /**
-     * POST /api/information/{information}/complete
-     */
     public function complete(InformationModel $information): JsonResponse
     {
-        if (in_array($information->status, [InformationStatus::Accepted, InformationStatus::InProgress], true)
-            && auth()->id() !== $information->assignee_id) {
+        if (! $this->service->complete($information)) {
             return response()->json([
-                'message' => 'Faqat qabul qilgan foydalanuvchi ishni yakunlashi mumkin.',
-            ], 403);
-        }
-
-        if (! $information->complete()) {
-            return response()->json([
-                'message' => 'Ishni yakunlab bo\'lmaydi. Ma\'lumot qabul qilingan yoki jarayonda bo\'lishi kerak.',
+                'message' => "Ishni yakunlab bo'lmaydi. Ma'lumot jarayonda bo'lishi kerak.",
             ], 422);
         }
 
         return response()->json([
             'message' => 'Ish muvaffaqiyatli yakunlandi.',
-            'data'    => new InformationResource(
-                $information->load('supplier', 'unit', 'creator', 'assignee')
-            ),
+            'data'    => new InformationResource($information->fresh(['supplier', 'creator', 'items.unit'])),
         ]);
     }
 }

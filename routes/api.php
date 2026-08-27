@@ -14,6 +14,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\StaffNameController;
 use App\Http\Controllers\RoomNameController;
 use App\Http\Controllers\ContractAPI\InformationController;
+use App\Http\Controllers\ContractAPI\InformationItemController;
 use App\Http\Controllers\ContractAPI\ReceivingController;
 use App\Http\Controllers\Api\WarehouseTransferController;
 use App\Http\Controllers\Api\BugalteriyaController;
@@ -120,17 +121,22 @@ Route::prefix('bugalteriya')->group(function () {
 
 //Information
 Route::prefix('information')->group(function () {
-    Route::get('pending',  [InformationController::class, 'pending'])->middleware('perm:ombor.informations.view');
-    Route::get('my-tasks', [InformationController::class, 'myTasks'])->middleware('perm:ombor.informations.view');
-    Route::post('bulk',    [InformationController::class, 'bulkStore'])->middleware('perm:ombor.informations.create');
+    Route::get('pending', [InformationController::class, 'pending']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.informations.view');
 
-    Route::get('',  [InformationController::class, 'index'])->middleware('perm:ombor.informations.view');
-    Route::post('', [InformationController::class, 'store'])->middleware('perm:ombor.informations.create');
-    Route::get('{information}', [InformationController::class, 'show'])->middleware('perm:ombor.informations.view');
+    Route::get('',  [InformationController::class, 'index']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.informations.view');
+    Route::post('', [InformationController::class, 'store']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.informations.create');
 
-    Route::post('{information}/accept',   [InformationController::class, 'accept'])->middleware('perm:ombor.informations.update');
-    Route::post('{information}/start',    [InformationController::class, 'start'])->middleware('perm:ombor.informations.update');
-    Route::post('{information}/complete', [InformationController::class, 'complete'])->middleware('perm:ombor.informations.update');
+    Route::get('{information}',    [InformationController::class, 'show']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.informations.view');
+    Route::put('{information}',    [InformationController::class, 'update']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.informations.update');
+    Route::delete('{information}', [InformationController::class, 'destroy']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.informations.delete');
+
+    Route::post('{information}/accept',   [InformationController::class, 'accept']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.informations.update');
+    Route::post('{information}/start',    [InformationController::class, 'start']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.informations.update');
+    Route::post('{information}/complete', [InformationController::class, 'complete']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.informations.update');
+
+    Route::post('{information}/items',          [InformationItemController::class, 'store']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.informations.update');
+    Route::put('{information}/items/{item}',    [InformationItemController::class, 'update']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.informations.update');
+    Route::delete('{information}/items/{item}', [InformationItemController::class, 'destroy']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.informations.update');
 });
 
 //Warehouse
