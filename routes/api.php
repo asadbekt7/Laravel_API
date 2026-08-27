@@ -19,6 +19,7 @@ use App\Http\Controllers\ContractAPI\ReceivingController;
 use App\Http\Controllers\Api\WarehouseTransferController;
 use App\Http\Controllers\Api\BugalteriyaController;
 use App\Http\Controllers\Api\WarehouseController;
+use App\Http\Controllers\Api\WarehouseItemsController;
 use App\Http\Controllers\Api\TransferController;
 use App\Http\Controllers\Api\WarehouseBatchController;
 use Illuminate\Http\Request;
@@ -156,6 +157,10 @@ Route::prefix('warehouse')->group(function () {
 
     Route::get('receiving/{warehouse}', [WarehouseController::class, 'show']);
     //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse.view');
+});
+//Warehouse-Items
+Route::prefix('warehouse-items')->group(function () {
+    Route::get('', [WarehouseItemsController::class, 'index']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse-items.view');
 });
 //WarehouseTransfer todo ->middleware('perm:ombor.warehouse.update')
 Route::prefix('warehouse-transfer')->group(function () {

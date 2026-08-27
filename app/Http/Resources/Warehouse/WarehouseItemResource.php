@@ -18,6 +18,17 @@ class WarehouseItemResource extends JsonResource
             'type'             => $this->whenLoaded('type'),
             'category'         => $this->whenLoaded('category'),
             'model'            => $this->whenLoaded('model'),
+
+            // YANGI: faqat "warehouse" relatsiyasi eager-load qilingan joyda (umumiy
+            // ro'yxat, WarehouseItemsController) chiqadi. Bitta akt ichidagi
+            // ro'yxatda (WarehouseController::show) bu maydon ko'rinmaydi,
+            // chunki u yerda warehouse allaqachon ma'lum.
+            'warehouse' => $this->whenLoaded('warehouse', fn () => [
+                'id'         => $this->warehouse->id,
+                'akt_number' => $this->warehouse->akt_number,
+                'akt_date'   => $this->warehouse->akt_date?->format('Y-m-d'),
+                'location'   => $this->warehouse->location?->name,
+            ]),
         ];
     }
 }
