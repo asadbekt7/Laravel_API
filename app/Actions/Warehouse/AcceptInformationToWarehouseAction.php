@@ -15,6 +15,16 @@ final readonly class AcceptInformationToWarehouseAction
 {
     public function execute(InformationModel $information, WarehouseAcceptData $data): WarehouseModel
     {
+        // MUHIM: qatorni qayta, lockForUpdate() bilan o'qiymiz - shu orqali
+        // parallel accept/reject so'rovlari bir-birini "ko'rmasdan" o'tib
+        // ketishining (race condition) oldi olinadi. Bu faqat DB::transaction()
+        // ichida ishlaydi (WarehouseAcceptanceService::accept() shunday chaqiradi).
+        /** @var InformationModel $information */
+        $information = InformationModel::query()
+            ->whereKey($information->id)
+            ->lockForUpdate()
+            ->firstOrFail();
+
         if (! $information->status->canTransitionTo(InformationStatus::Accepted)) {
             throw new RuntimeException("Bu ma'lumotni qabul qilib bo'lmaydi - u allaqachon ko'rib chiqilgan.");
         }
@@ -26,8 +36,7 @@ final readonly class AcceptInformationToWarehouseAction
             'assignee_id'    => auth()->id(),
             'akt_number'     => $data->aktNumber,
             'akt_date'       => $data->aktDate,
-            // Kirim (qabul qilish) jarayonida status har doim DEFAULT ACCEPTED bo'ladi.
-            'status' => WarehouseAktStatus::ACCEPTED,
+            'status'         => WarehouseAktStatus::ACCEPTED,
         ]);
 
         foreach ($data->items as $item) {

@@ -11,9 +11,13 @@ use App\Http\Requests\Warehouse\AcceptWarehouseRequest;
 use App\Http\Requests\Warehouse\RejectWarehouseRequest;
 use App\Http\Resources\Information\InformationResource;
 use App\Http\Resources\Warehouse\WarehouseResource;
+use App\Http\Requests\Warehouse\WarehouseIndexRequest;
+use App\Http\Resources\Warehouse\WarehouseListResource;
 use App\Models\InformationModel;
+use App\Models\WarehouseModel;
 use App\Services\InformationService;
 use App\Services\WarehouseAcceptanceService;
+use App\Services\WarehouseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -23,6 +27,7 @@ class WarehouseController extends Controller
     public function __construct(
         private readonly WarehouseAcceptanceService $acceptanceService,
         private readonly InformationService $informationService,
+        private readonly WarehouseService $warehouseService,
     ) {
     }
 
@@ -93,5 +98,28 @@ class WarehouseController extends Controller
             'message' => 'Rad etildi.',
             'data'    => new InformationResource($information->fresh()),
         ]);
+    }
+    /**
+     * Qabul qilingan aktlar ro'yxati.
+     *
+     * GET /api/receiving
+     */
+    public function index(WarehouseIndexRequest $request): AnonymousResourceCollection
+    {
+        $perPage = min((int) $request->validated('per_page', 15), 100);
+
+        $warehouses = $this->warehouseService->paginate($request->validated(), $perPage);
+
+        return WarehouseListResource::collection($warehouses);
+    }
+
+    /**
+     * Bitta aktning to'liq ma'lumotlari (akt_number, akt_date + tovar qatorlari).
+     *
+     * GET /api/receiving/{warehouse}
+     */
+    public function show(WarehouseModel $warehouse): WarehouseResource
+    {
+        return new WarehouseResource($this->warehouseService->detail($warehouse));
     }
 }

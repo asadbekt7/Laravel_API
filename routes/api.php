@@ -150,8 +150,13 @@ Route::prefix('warehouse')->group(function () {
 
     Route::post('{information}/reject', [WarehouseController::class, 'reject']);
     //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse.reject');
-});
 
+    Route::get('receiving', [WarehouseController::class, 'index']);
+    //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse.view');
+
+    Route::get('receiving/{warehouse}', [WarehouseController::class, 'show']);
+    //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse.view');
+});
 //WarehouseTransfer todo ->middleware('perm:ombor.warehouse.update')
 Route::prefix('warehouse-transfer')->group(function () {
     Route::get('staff-search', [WarehouseTransferController::class, 'staffSearch']);
