@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\DTOs\Warehouse\WarehouseAcceptData;
 use App\DTOs\Warehouse\WarehouseItemClassificationData;
+use App\DTOs\Warehouse\WarehouseUpdateData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Warehouse\AcceptWarehouseRequest;
 use App\Http\Requests\Warehouse\RejectWarehouseRequest;
@@ -13,6 +14,7 @@ use App\Http\Resources\Information\InformationResource;
 use App\Http\Resources\Warehouse\WarehouseResource;
 use App\Http\Requests\Warehouse\WarehouseIndexRequest;
 use App\Http\Resources\Warehouse\WarehouseListResource;
+use App\Http\Requests\Warehouse\WarehouseUpdateRequest;
 use App\Models\InformationModel;
 use App\Models\WarehouseModel;
 use App\Services\InformationService;
@@ -121,5 +123,21 @@ class WarehouseController extends Controller
     public function show(WarehouseModel $warehouse): WarehouseResource
     {
         return new WarehouseResource($this->warehouseService->detail($warehouse));
+    }
+    /**
+     * Akt raqami/sanasini tahrirlash.
+     *
+     * PUT /api/warehouse/receiving/{warehouse}
+     */
+    public function update(WarehouseUpdateRequest $request, WarehouseModel $warehouse): WarehouseResource
+    {
+        $data = new WarehouseUpdateData(
+            aktNumber: $request->validated('akt_number'),
+            aktDate: $request->validated('akt_date'),
+        );
+
+        $updated = $this->acceptanceService->updateAkt($warehouse, $data);
+
+        return new WarehouseResource($updated);
     }
 }

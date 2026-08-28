@@ -157,6 +157,8 @@ Route::prefix('warehouse')->group(function () {
 
     Route::get('receiving/{warehouse}', [WarehouseController::class, 'show']);
     //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse.view');
+    Route::put('receiving/{warehouse}', [WarehouseController::class, 'update']);
+    //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse.update');
 });
 //Warehouse-Items
 Route::prefix('warehouse-items')->group(function () {
