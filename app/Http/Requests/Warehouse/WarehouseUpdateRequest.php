@@ -21,13 +21,8 @@ class WarehouseUpdateRequest extends FormRequest
         $warehouse = $this->route('warehouse');
 
         return [
-            'akt_number' => [
-                'required', 'string', 'max:255',
-                // Boshqa aktning akt_number'i bilan to'qnashmasin - o'zining
-                // hozirgi qiymatini esa e'tiborsiz qoldiradi (ignore).
-                Rule::unique('warehouse', 'akt_number')->ignore($warehouse?->id),
-            ],
-            'akt_date' => ['required', 'date', 'before_or_equal:today'],
+            'akt_number' => ['required', 'string', 'max:255'],
+            'akt_date'   => ['required', 'date', 'before_or_equal:today'],
         ];
     }
 
