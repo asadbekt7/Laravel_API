@@ -143,4 +143,18 @@ class WarehouseController extends Controller
 
         return new WarehouseResource($updated);
     }
+
+    public function pdf(
+        Request $request,
+        WarehouseModel $warehouse,
+        GenerateReceivingActPdfAction $action,
+    ): Responsable {
+        $act = ReceivingActData::fromWarehouse($this->warehouseService->detail($warehouse));
+
+        return $action->execute(
+            $act,
+            $request->boolean('download'),
+            (string) $request->query('lang', 'ru'),
+        );
+    }
 }

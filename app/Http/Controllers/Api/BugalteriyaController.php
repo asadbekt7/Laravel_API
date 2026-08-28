@@ -26,7 +26,7 @@ class BugalteriyaController extends Controller
 
         $entries = BugalteriyaModel::query()
             ->when(in_array($status, $allowed, true), fn ($q) => $q->where('status', $status))
-            ->with(['warehouse', 'type', 'category', 'model', 'unit', 'batch'])
+            ->with(['warehouseItem.warehouse', 'type', 'category', 'model', 'unit', 'batch'])
             ->latest()
             ->paginate((int) $request->input('per_page', 20));
 
@@ -36,7 +36,7 @@ class BugalteriyaController extends Controller
     public function show(BugalteriyaModel $bugalteriya): BugalteriyaResource
     {
         return new BugalteriyaResource(
-            $bugalteriya->load(['warehouse', 'type', 'category', 'model', 'unit', 'batch'])
+            $bugalteriya->load(['warehouseItem.warehouse', 'type', 'category', 'model', 'unit', 'batch'])
         );
     }
 

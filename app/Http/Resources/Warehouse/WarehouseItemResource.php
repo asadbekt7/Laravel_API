@@ -18,6 +18,9 @@ class WarehouseItemResource extends JsonResource
             'type'             => $this->whenLoaded('type'),
             'category'         => $this->whenLoaded('category'),
             'model'            => $this->whenLoaded('model'),
+
+            'quantity'         => (float) $this->quantity,
+
             'created_at'       => $this->created_at?->toDateTimeString(),
 
             // YANGI: faqat "warehouse" relatsiyasi eager-load qilingan joyda (umumiy

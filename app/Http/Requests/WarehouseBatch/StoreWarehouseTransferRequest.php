@@ -24,7 +24,7 @@ class StoreWarehouseTransferRequest extends FormRequest
             'staff.department' => ['nullable', 'string', 'max:255'],
 
             'products' => ['required', 'array', 'min:1'],
-            'products.*.warehouse_id' => ['required', 'integer', 'exists:warehouse,id', 'distinct'],
+            'products.*.warehouse_item_id' => ['required', 'integer', 'exists:warehouse_items,id', 'distinct'],
             'products.*.quantity' => ['required', 'integer', 'min:1'],
             'products.*.room_name' => ['nullable', 'string'],
             'products.*.building' => ['nullable', 'string'],

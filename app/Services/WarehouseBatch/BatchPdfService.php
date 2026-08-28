@@ -17,7 +17,8 @@ class BatchPdfService
 
         DB::afterCommit(function () use ($batchId) {
             $batch = WarehouseBatch::with([
-                'entries.warehouse.unit',
+                'entries.unit',
+                'entries.warehouseItem.informationItem',
                 'signers.user',
                 'createdBy',
             ])->find($batchId);

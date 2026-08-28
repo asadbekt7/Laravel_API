@@ -71,6 +71,7 @@ final class WarehouseService
             'assignee',
             'information',
             'information.creator',
+            'information.supplier',
         ]);
     }
 }

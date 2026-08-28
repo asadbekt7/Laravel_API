@@ -14,10 +14,18 @@ class WarehouseItem extends Model
     protected $fillable = [
         'warehouse_id',
         'information_item_id',
+        'quantity',
         'type_id',
         'category_id',
         'model_id',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'decimal:3',
+        ];
+    }
 
     public function warehouse(): BelongsTo
     {

@@ -39,9 +39,13 @@ final readonly class AcceptInformationToWarehouseAction
             'status'         => WarehouseAktStatus::ACCEPTED,
         ]);
 
+
+        $quantities = $information->items()->pluck('quantity', 'id');
+
         foreach ($data->items as $item) {
             $warehouse->items()->create([
                 'information_item_id' => $item->informationItemId,
+                'quantity'            => $quantities[$item->informationItemId] ?? 0,
                 'type_id'             => $item->typeId,
                 'category_id'         => $item->categoryId,
                 'model_id'            => $item->modelId,

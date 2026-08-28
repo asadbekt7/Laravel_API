@@ -23,9 +23,9 @@ class BugalteriyaModel extends Model
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_CANCELLED = 'cancelled';
 
-    public function warehouse(): BelongsTo
+    public function warehouseItem(): BelongsTo
     {
-        return $this->belongsTo(WarehouseModel::class, 'warehouse_id');
+        return $this->belongsTo(WarehouseItem::class, 'warehouse_item_id');
     }
 
     public function item(): BelongsTo

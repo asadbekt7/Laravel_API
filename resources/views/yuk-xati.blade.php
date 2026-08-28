@@ -117,9 +117,11 @@
 
     $recipient = $batch->entries->first();
 
+    $priceOf = fn ($entry) => (float) ($entry->warehouseItem?->informationItem?->item_price ?? 0);
+
     $total = 0;
     foreach ($batch->entries as $it) {
-        $total += (float) ($it->warehouse->product_price ?? 0) * (int) $it->quantity;
+        $total += $priceOf($it) * (int) $it->quantity;
     }
 
     $money = fn ($v) => number_format((float) $v, 2, ',', ' ');
@@ -258,13 +260,13 @@
         <tbody>
             @foreach ($batch->entries as $i => $item)
                 @php
-                    $price = (float) ($item->warehouse->product_price ?? 0);
+                    $price = $priceOf($item);
                     $line  = $price * (int) $item->quantity;
                 @endphp
                 <tr>
                     <td class="c">{{ $i + 1 }}</td>
-                    <td>{{ $item->name ?? $item->warehouse->name ?? '—' }}</td>
-                    <td class="c">{{ $item->warehouse->unit->name ?? '' }}</td>
+                    <td>{{ $item->name ?? '—' }}</td>
+                    <td class="c">{{ $item->unit->name ?? '' }}</td>
                     <td class="c">{{ $item->debit ?? '' }}</td>
                     <td class="c">{{ $item->kredit ?? '' }}</td>
                     <td class="c">{{ $item->talab_qilingan ?? '' }}</td>

@@ -22,7 +22,7 @@ class StoreWarehouseTransferRequest extends FormRequest
             'staff.department'  => ['nullable', 'string', 'max:255'],
 
             'products'                    => ['required', 'array', 'min:1'],
-            'products.*.warehouse_id'     => ['required', 'integer', 'exists:warehouse,id', 'distinct'],
+            'products.*.warehouse_item_id' => ['required', 'integer', 'exists:warehouse_items,id', 'distinct'],
             'products.*.quantity'         => ['required', 'integer', 'min:1'],
             'products.*.inventory_number' => ['nullable', 'string', 'max:255', 'distinct', 'unique:items,inventory_number'],
             'products.*.room_name'        => ['nullable', 'string', 'max:255'],
@@ -38,7 +38,7 @@ class StoreWarehouseTransferRequest extends FormRequest
         return [
             'staff.required'                       => 'Xodim tanlanishi shart.',
             'products.required'                    => 'Kamida bitta mahsulot tanlanishi kerak.',
-            'products.*.warehouse_id.distinct'     => 'Bitta mahsulot ikki marta tanlangan.',
+            'products.*.warehouse_item_id.distinct' => 'Bitta mahsulot ikki marta tanlangan.',
             'products.*.quantity.min'              => 'Miqdor kamida 1 bo\'lishi kerak.',
             'products.*.inventory_number.unique'   => 'Bu inventar raqami allaqachon mavjud.',
             'products.*.inventory_number.distinct' => 'Inventar raqamlari takrorlanmasligi kerak.',

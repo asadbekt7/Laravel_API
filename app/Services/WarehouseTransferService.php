@@ -8,16 +8,17 @@ use App\Enums\SignerLevelStatus;
 use App\Exceptions\InsufficientQuantityException;
 use App\Models\BugalteriyaModel;
 use App\Models\WarehouseBatch;
-use App\Models\WarehouseModel;
+use App\Models\WarehouseItem;
 use DomainException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+
 
 class WarehouseTransferService
 {
     /**
      * @param array $staff    Tanlangan xodim (snapshot)
-     * @param array $products Tanlangan mahsulotlar
+     * @param array $products Tanlangan mahsulotlar (warehouse_item_id + quantity)
      * @param string $batchId  Oldindan yaratilgan partiyaning batch_number qiymati
      *
      * @return Collection<int, BugalteriyaModel>
@@ -27,7 +28,7 @@ class WarehouseTransferService
      */
     public function handle(array $staff, array $products, string $batchId): Collection
     {
-        $products = collect($products)->sortBy('warehouse_id')->values()->all();
+        $products = collect($products)->sortBy('warehouse_item_id')->values()->all();
 
         return DB::transaction(function () use ($staff, $products, $batchId) {
             $batch = WarehouseBatch::where('batch_number', $batchId)->lockForUpdate()->firstOrFail();
@@ -36,7 +37,6 @@ class WarehouseTransferService
                 throw new DomainException('Bu batch allaqachon yopilgan yoki rad etilgan — mahsulot biriktirib bo\'lmaydi.');
             }
 
-            // === BUG FIX ===
             // Bugalter (1-daraja) allaqachon imzolab bo'lgan bo'lsa, batch endi 2-daraja
             // (yoki undan keyingi) tasdiqlashni kutmoqda — status hali "InProgress" bo'lib
             // turadi. Shu holatda yangi mahsulot biriktirilsa, u bugalter nazoratidan
@@ -55,30 +55,42 @@ class WarehouseTransferService
             foreach ($products as $product) {
                 $requested = (int) $product['quantity'];
 
-                $warehouse = WarehouseModel::lockForUpdate()->findOrFail($product['warehouse_id']);
+                /** @var WarehouseItem $item */
+                $item = WarehouseItem::query()
+                    ->whereKey($product['warehouse_item_id'])
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-                if ($warehouse->quantity < $requested) {
+                $item->load([
+                    'informationItem.unit',
+                    'warehouse.information.supplier',
+                ]);
+
+                $productName = $item->informationItem?->product_name ?? '';
+                $available   = (float) $item->quantity;
+
+                if ($available < $requested) {
                     throw new InsufficientQuantityException(
-                        productName: $warehouse->name,
-                        available: $warehouse->quantity,
+                        productName: $productName,
+                        available: (int) $available,
                         requested: $requested,
                     );
                 }
 
-                $warehouse->load('information.supplier');
+                $information = $item->warehouse?->information;
 
                 $entry = BugalteriyaModel::create([
-                    'batch_id'         => $batch->id,
-                    'warehouse_id'     => $warehouse->id,
+                    'batch_id'          => $batch->id,
+                    'warehouse_item_id' => $item->id,
 
-                    'name'             => $warehouse->name,
-                    'document_number'  => $warehouse->information?->contract_number,
-                    'supplier_name'    => $warehouse->information?->supplier?->name,
+                    'name'             => $productName,
+                    'document_number'  => $information?->contract_number,
+                    'supplier_name'    => $information?->supplier?->name,
 
-                    'type_id'          => $warehouse->type_id,
-                    'category_id'      => $warehouse->category_id,
-                    'model_id'         => $warehouse->model_id,
-                    'unit_id'          => $warehouse->unit_id,
+                    'type_id'          => $item->type_id,
+                    'category_id'      => $item->category_id,
+                    'model_id'         => $item->model_id,
+                    'unit_id'          => $item->informationItem?->unit_id,
 
                     'quantity'         => $requested,
 
@@ -92,20 +104,21 @@ class WarehouseTransferService
                     'full_name'        => $staff['full_name'],
                     'department'       => $staff['department'] ?? null,
 
-                    'condition'        => $product['condition'] ?? $warehouse->condition ?? 'new',
+                    'condition'        => $product['condition'] ?? 'new',
                     'notes'            => $product['notes'] ?? null,
 
                     'status'           => BugalteriyaModel::STATUS_PENDING,
                 ]);
 
-                $affected = WarehouseModel::where('id', $warehouse->id)
+
+                $affected = WarehouseItem::where('id', $item->id)
                     ->where('quantity', '>=', $requested)
                     ->decrement('quantity', $requested);
 
                 if ($affected === 0) {
                     throw new InsufficientQuantityException(
-                        productName: $warehouse->name,
-                        available: $warehouse->fresh()->quantity,
+                        productName: $productName,
+                        available: (int) $item->fresh()->quantity,
                         requested: $requested,
                     );
                 }

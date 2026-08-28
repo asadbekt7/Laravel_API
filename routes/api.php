@@ -158,6 +158,8 @@ Route::prefix('warehouse')->group(function () {
     Route::get('receiving/{warehouse}', [WarehouseController::class, 'show'])
         ->name('warehouse.receiving.show');
     //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse.view');
+    Route::put('receiving/{warehouse}', [WarehouseController::class, 'update']);
+    //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse.update');
 
     Route::get('receiving/{warehouse}/pdf', [WarehouseController::class, 'pdf'])
         ->middleware('throttle:20,1')

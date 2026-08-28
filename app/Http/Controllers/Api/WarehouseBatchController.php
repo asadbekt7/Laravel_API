@@ -63,7 +63,7 @@ class WarehouseBatchController extends Controller
         $this->authorize('view', $batch);
 
         return new WarehouseBatchResource(
-            $batch->load(['entries.warehouse', 'signers.user', 'createdBy'])
+            $batch->load(['entries.unit', 'signers.user', 'createdBy'])
         );
     }
 
@@ -82,7 +82,7 @@ class WarehouseBatchController extends Controller
         $lang = $request->query('lang');
 
         if (in_array($lang, ['uz', 'ru', 'en'], true)) {
-            $batch->load(['entries.warehouse.unit', 'signers.user', 'createdBy']);
+            $batch->load(['entries.unit', 'entries.warehouseItem.informationItem', 'signers.user', 'createdBy']);
 
             $document = $pdf->fromView('yuk-xati', ['batch' => $batch, 'lang' => $lang], $fileName);
 

@@ -6,7 +6,7 @@ namespace App\Services;
 use App\Enums\ItemType;
 use App\Models\BugalteriyaModel;
 use App\Models\ItemsModel;
-use App\Models\WarehouseModel;
+use App\Models\WarehouseItem;
 use DomainException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -130,8 +130,8 @@ class BugalteriyaService
                 throw new DomainException('Faqat pending holatdagi yozuvni bekor qilish mumkin.');
             }
 
-            if ($entry->warehouse_id) {
-                WarehouseModel::where('id', $entry->warehouse_id)
+            if ($entry->warehouse_item_id) {
+                WarehouseItem::where('id', $entry->warehouse_item_id)
                     ->increment('quantity', $entry->quantity);
             }
 
