@@ -13,7 +13,7 @@ final readonly class WarehouseAcceptData
         public string $aktNumber,
         public string $aktDate,
         public int $locationId,
-        public string $description,
+        public ?string $description,
         public array $items,
     ) {
     }

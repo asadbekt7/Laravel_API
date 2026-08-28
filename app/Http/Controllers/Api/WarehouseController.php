@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\Receiving\GenerateReceivingActPdfAction;
+use App\DTOs\Receiving\ReceivingActData;
 use App\DTOs\Warehouse\WarehouseAcceptData;
 use App\DTOs\Warehouse\WarehouseItemClassificationData;
 use App\Http\Controllers\Controller;
@@ -20,6 +22,7 @@ use App\Services\WarehouseAcceptanceService;
 use App\Services\WarehouseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class WarehouseController extends Controller
@@ -121,5 +124,19 @@ class WarehouseController extends Controller
     public function show(WarehouseModel $warehouse): WarehouseResource
     {
         return new WarehouseResource($this->warehouseService->detail($warehouse));
+    }
+
+    public function pdf(
+        Request $request,
+        WarehouseModel $warehouse,
+        GenerateReceivingActPdfAction $action,
+    ): Responsable {
+        $act = ReceivingActData::fromWarehouse($this->warehouseService->detail($warehouse));
+
+        return $action->execute(
+            $act,
+            $request->boolean('download'),
+            (string) $request->query('lang', 'ru'),
+        );
     }
 }

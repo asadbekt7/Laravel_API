@@ -32,7 +32,7 @@ final readonly class AcceptInformationToWarehouseAction
         $warehouse = WarehouseModel::create([
             'information_id' => $information->id,
             'location_id'    => $data->locationId,
-            'description'    => $data->description,
+            'description'    => $data->description ?? '',
             'assignee_id'    => auth()->id(),
             'akt_number'     => $data->aktNumber,
             'akt_date'       => $data->aktDate,

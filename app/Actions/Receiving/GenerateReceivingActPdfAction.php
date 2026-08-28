@@ -24,7 +24,11 @@ final class GenerateReceivingActPdfAction
     {
         $lang = in_array($lang, ['uz', 'ru', 'en'], true) ? $lang : 'ru';
 
-        $fileName = sprintf('akt-%s.pdf', str_replace(['/', '\\'], '-', $act->aktNumber));
+        $slug = $act->aktNumber !== null && $act->aktNumber !== ''
+            ? str_replace(['/', '\\'], '-', $act->aktNumber)
+            : (string) $act->warehouseId;
+
+        $fileName = sprintf('akt-%s.pdf', $slug);
 
         $pdf = $this->pdf->fromView('pdf.receiving-act', ['act' => $act, 'lang' => $lang], $fileName);
 

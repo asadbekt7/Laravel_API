@@ -4,16 +4,13 @@ declare(strict_types=1);
 
 namespace App\DTOs\Receiving;
 
+use App\Models\WarehouseModel;
 use App\Support\NumberToWords\SumToWordsConverter;
 use Illuminate\Support\Collection;
 
 /**
- * Bitta akt_number'ga tegishli barcha qatorlarni birlashtirib,
- * "Приёмный акт" blankiga mos header + items ko'rinishida taqdim etadi.
- *
- * Bu Eloquent model emas — chunki bazada "bitta akt" degan alohida jadval yo'q,
- * u information jadvalidagi bir nechta qatorning guruhi sifatida mavjud.
- * Shu sabab alohida o'qish-modeli (read model / DTO) sifatida shakllantiriladi.
+ * Bitta qabul aktini "Приёмный акт" blankiga mos header + items ko'rinishida
+ * taqdim etadi.
  */
 final readonly class ReceivingActData
 {
@@ -22,11 +19,12 @@ final readonly class ReceivingActData
      * @param Collection<int, ReceivingApprovalData> $approvals Tasdiqlash holati jadvali
      */
     public function __construct(
-        public string $aktNumber,
+        public int $warehouseId,
+        public ?string $aktNumber,
         public ?string $aktDate,
-        public string $hisobFaktura,
+        public ?string $hisobFaktura,
         public ?string $hisobFakturaDate,
-        public string $contractNumber,
+        public ?string $contractNumber,
         public ?string $contractDate,
         public string $supplierName,
         public ?string $ishonchnomaNumber,
@@ -39,16 +37,16 @@ final readonly class ReceivingActData
     ) {
     }
 
-    /**
-     * @param Collection<int, \App\Models\InformationModel> $rows Bitta akt_number'ga tegishli barcha qatorlar
-     */
-    public static function fromRows(Collection $rows): self
+    public static function fromWarehouse(WarehouseModel $warehouse): self
     {
-        /** @var \App\Models\InformationModel $first */
-        $first = $rows->first();
+        $information = $warehouse->information;
 
-        $items = $rows->values()
-            ->map(fn ($row, int $index) => ReceivingActItemData::fromModel($row, $index + 1));
+        $items = $warehouse->items
+            ->values()
+            ->map(fn ($warehouseItem, int $index) => ReceivingActItemData::fromModel(
+                $warehouseItem->informationItem,
+                $index + 1,
+            ));
 
         $totalSum = $items->reduce(
             fn (string $carry, ReceivingActItemData $item) => bcadd($carry, $item->sum, 2),
@@ -56,40 +54,36 @@ final readonly class ReceivingActData
         );
 
         return new self(
-            aktNumber: $first->akt_number,
-            aktDate: $first->akt_date?->format('d.m.Y'),
-            hisobFaktura: $first->hisob_faktura,
-            hisobFakturaDate: $first->hisob_faktura_date?->format('d.m.Y'),
-            contractNumber: $first->contract_number,
-            contractDate: $first->contract_date?->format('d.m.Y'),
-            supplierName: $first->supplier?->name ?? '',
-            ishonchnomaNumber: $first->ishonchnoma_number,
-            ishonchnomaDate: $first->ishonchnoma_date?->format('d.m.Y'),
-            assigneeName: $first->assignee?->name,
+            warehouseId: $warehouse->id,
+            aktNumber: $warehouse->akt_number,
+            aktDate: $warehouse->akt_date?->format('d.m.Y'),
+            hisobFaktura: $information?->hisob_faktura,
+            hisobFakturaDate: $information?->hisob_faktura_date?->format('d.m.Y'),
+            contractNumber: $information?->contract_number,
+            contractDate: $information?->contract_date?->format('d.m.Y'),
+            supplierName: $information?->supplier?->name ?? '',
+            ishonchnomaNumber: $information?->ishonchnoma_number,
+            ishonchnomaDate: $information?->ishonchnoma_date?->format('d.m.Y'),
+            assigneeName: $warehouse->assignee?->full_name ?: $warehouse->assignee?->name,
             items: $items,
             totalSum: $totalSum,
             totalSumInWords: SumToWordsConverter::convert($totalSum),
-            approvals: self::approvalsFromRows($rows),
+            approvals: self::approvalsFrom($warehouse),
         );
     }
 
     /**
-     *
-     * @param Collection<int, \App\Models\InformationModel> $rows
      * @return Collection<int, ReceivingApprovalData>
      */
-    private static function approvalsFromRows(Collection $rows): Collection
+    private static function approvalsFrom(WarehouseModel $warehouse): Collection
     {
-        /** @var \App\Models\InformationModel $first */
-        $first = $rows->first();
-
         $date = fn (?\DateTimeInterface $moment) => $moment?->format('d.m.Y');
         $time = fn (?\DateTimeInterface $moment) => $moment?->format('H:i');
 
         $approvals = collect();
 
-        if ($creator = $first->creator) {
-            $sentAt = $rows->min('created_at');
+        if ($creator = $warehouse->information?->creator) {
+            $sentAt = $warehouse->information->created_at;
 
             $approvals->push(new ReceivingApprovalData(
                 rowNumber: $approvals->count() + 1,
@@ -101,8 +95,8 @@ final readonly class ReceivingActData
             ));
         }
 
-        if ($assignee = $first->assignee) {
-            $acceptedAt = $rows->max('accepted_at');
+        if ($assignee = $warehouse->assignee) {
+            $acceptedAt = $warehouse->information?->accepted_at ?? $warehouse->created_at;
 
             $approvals->push(new ReceivingApprovalData(
                 rowNumber: $approvals->count() + 1,

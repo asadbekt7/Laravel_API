@@ -25,7 +25,7 @@ class AcceptWarehouseRequest extends FormRequest
             'akt_number'  => ['required', 'string', 'max:255'],
             'akt_date'    => ['required', 'date', 'before_or_equal:today'],
             'location_id' => ['required', 'integer', Rule::exists('locations', 'id')],
-            'description' => ['required', 'string'],
+            'description' => ['nullable', 'string'],
 
             // Items soni aynan information_items soniga teng bo'lishi shart -
             // hech bir mahsulot klassifikatsiyasiz qolmasligi kerak.

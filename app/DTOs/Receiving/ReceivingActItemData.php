@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\DTOs\Receiving;
 
-use App\Models\InformationModel;
+use App\Models\InformationItem;
 
 /**
  * Akt jadvalidagi bitta qatorni (bitta mahsulotni) ifodalovchi o'zgarmas DTO.
@@ -17,27 +17,23 @@ final readonly class ReceivingActItemData
         public int $rowNumber,
         public string $productName,
         public string $unitName,
-        public int $quantity,
+        public string $quantity,
         public string $price,
         public string $sum,
     ) {
     }
 
-    public static function fromModel(InformationModel $information, int $rowNumber): self
+    public static function fromModel(InformationItem $item, int $rowNumber): self
     {
         // bcmath — decimal(20,2) ustida aniq (float'siz) arifmetika uchun.
-        $sum = bcmul(
-            (string) $information->quantity,
-            (string) $information->price,
-            2
-        );
+        $sum = bcmul((string) $item->quantity, (string) $item->item_price, 2);
 
         return new self(
             rowNumber: $rowNumber,
-            productName: $information->product_name,
-            unitName: $information->unit?->name ?? '',
-            quantity: $information->quantity,
-            price: number_format((float) $information->price, 2, '.', ''),
+            productName: $item->product_name,
+            unitName: $item->unit?->name ?? '',
+            quantity: (string) $item->quantity,
+            price: number_format((float) $item->item_price, 2, '.', ''),
             sum: $sum,
         );
     }

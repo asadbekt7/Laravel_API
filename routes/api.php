@@ -15,7 +15,7 @@ use App\Http\Controllers\StaffNameController;
 use App\Http\Controllers\RoomNameController;
 use App\Http\Controllers\ContractAPI\InformationController;
 use App\Http\Controllers\ContractAPI\InformationItemController;
-use App\Http\Controllers\ContractAPI\ReceivingController;
+use App\Http\Controllers\Api\ReceivingController;
 use App\Http\Controllers\Api\WarehouseTransferController;
 use App\Http\Controllers\Api\BugalteriyaController;
 use App\Http\Controllers\Api\WarehouseController;
@@ -155,8 +155,13 @@ Route::prefix('warehouse')->group(function () {
     Route::get('receiving', [WarehouseController::class, 'index']);
     //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse.view');
 
-    Route::get('receiving/{warehouse}', [WarehouseController::class, 'show']);
+    Route::get('receiving/{warehouse}', [WarehouseController::class, 'show'])
+        ->name('warehouse.receiving.show');
     //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:ombor.warehouse.view');
+
+    Route::get('receiving/{warehouse}/pdf', [WarehouseController::class, 'pdf'])
+        ->middleware('throttle:20,1')
+        ->name('warehouse.receiving.pdf');
 });
 //Warehouse-Items
 Route::prefix('warehouse-items')->group(function () {
@@ -186,19 +191,4 @@ Route::get('warehouse-batches/{batch}/pdf', [WarehouseBatchController::class, 'p
     ->middleware('throttle:20,1')
     ->name('warehouse-batches.pdf');
 
-Route::prefix('receiving')
-    ->name('receiving.')
-    ->controller(ReceivingController::class)
-    ->group(function () {
-        Route::get('/', 'index')->name('index');
-
-        Route::get('/{aktNumber}', 'show')
-            ->where('aktNumber', '[A-Za-z0-9\-\.]+')
-            ->name('show');
-
-        Route::get('/{aktNumber}/pdf', 'pdf')
-            ->where('aktNumber', '[A-Za-z0-9\-\.]+')
-            ->middleware('throttle:20,1')
-            ->name('pdf');
-    });
 

@@ -6,6 +6,7 @@ namespace App\Http\Resources\Warehouse;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Ro'yxat (index) uchun MAXSUS, yengil resource - "Приёмный акт" jadvalidagi
@@ -25,7 +26,9 @@ class WarehouseListResource extends JsonResource
             'supplier'        => $this->information?->supplier?->name,
             'items_count'     => (int) $this->items_count,
             'items_total'     => (float) $this->items_total,
-            'pdf_url'         => url("/api/warehouse/{$this->id}/pdf"),
+            'pdf_url'         => Route::has('warehouse.receiving.pdf')
+                ? route('warehouse.receiving.pdf', ['warehouse' => $this->id], absolute: false)
+                : null,
         ];
     }
 }
