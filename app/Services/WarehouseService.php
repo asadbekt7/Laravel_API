@@ -40,7 +40,7 @@ final class WarehouseService
             ->when(
                 $filters['akt_number'] ?? null,
                 // PostgreSQL: case-insensitive qidiruv uchun LIKE emas, ILIKE.
-                fn (Builder $q, string $v) => $q->where('akt_number', 'ILIKE', "%{$v}%")
+                fn (Builder $q, string $v) => $q->whereRaw('akt_number::text ILIKE ?', ["%{$v}%"])
             )
             ->when($filters['akt_date_from'] ?? null, fn (Builder $q, string $v) => $q->whereDate('akt_date', '>=', $v))
             ->when($filters['akt_date_to'] ?? null, fn (Builder $q, string $v) => $q->whereDate('akt_date', '<=', $v))

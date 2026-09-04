@@ -10,7 +10,7 @@ final readonly class WarehouseAcceptData
      * @param  WarehouseItemClassificationData[]  $items
      */
     public function __construct(
-        public string $aktNumber,
+        public int $aktNumber,
         public string $aktDate,
         public int $locationId,
         public ?string $description,

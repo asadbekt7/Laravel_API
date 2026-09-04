@@ -40,7 +40,7 @@ class EloquentWarehouseRepository implements WarehouseRepositoryInterface
                     ->whereColumn('warehouse_items.warehouse_id', 'warehouse.id'),
             ])
             ->when($filters['akt_number'] ?? null, function (Builder $q, string $search) {
-                $q->where('akt_number', 'ilike', "%{$search}%");
+                $q->whereRaw('akt_number::text ILIKE ?', ["%{$search}%"]);
             })
             ->when($filters['location_id'] ?? null, fn ($q, $id) => $q->where('location_id', $id))
             ->when($filters['information_id'] ?? null, fn ($q, $id) => $q->where('information_id', $id))

@@ -55,7 +55,7 @@ final readonly class ReceivingActData
 
         return new self(
             warehouseId: $warehouse->id,
-            aktNumber: $warehouse->akt_number,
+            aktNumber: (string) $warehouse->akt_number,
             aktDate: $warehouse->akt_date?->format('d.m.Y'),
             hisobFaktura: $information?->hisob_faktura,
             hisobFakturaDate: $information?->hisob_faktura_date?->format('d.m.Y'),

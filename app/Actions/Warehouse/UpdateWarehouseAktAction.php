@@ -6,8 +6,6 @@ namespace App\Actions\Warehouse;
 
 use App\DTOs\Warehouse\WarehouseUpdateData;
 use App\Models\WarehouseModel;
-use Illuminate\Support\Facades\DB;
-use RuntimeException;
 
 final readonly class UpdateWarehouseAktAction
 {
@@ -19,7 +17,7 @@ final readonly class UpdateWarehouseAktAction
             ->lockForUpdate()
             ->firstOrFail();
 
-        $oldAktNumber = $warehouse->akt_number;
+        $oldAktNumber = (int) $warehouse->akt_number;
         $newAktNumber = $data->aktNumber;
 
         if ($oldAktNumber !== $newAktNumber) {
@@ -48,7 +46,7 @@ final readonly class UpdateWarehouseAktAction
      * sof raqam (masalan "1", "20") bo'lgandagina ishlaydi - "257-A" kabi
      * aralash formatlarga tegmaydi.
      */
-    private function reorderIfNeeded(WarehouseModel $warehouse, string $oldAktNumber, string $newAktNumber): void
+    private function reorderIfNeeded(WarehouseModel $warehouse, int $oldAktNumber, int $newAktNumber): void
     {
         $conflict = WarehouseModel::query()
             ->where('akt_number', $newAktNumber)
@@ -60,24 +58,15 @@ final readonly class UpdateWarehouseAktAction
             return; // yangi raqam bo'sh - siljitishning hojati yo'q
         }
 
-        if (! ctype_digit($oldAktNumber) || ! ctype_digit($newAktNumber)) {
-            throw new RuntimeException(
-                "akt_number \"{$newAktNumber}\" allaqachon band, avtomatik surish faqat sof raqamli akt_number'lar uchun ishlaydi."
-            );
-        }
-
-        $oldNum = (int) $oldAktNumber;
-        $newNum = (int) $newAktNumber;
-
         // Ta'sirlanadigan oraliq va yo'nalish: pastga ko'chirilsa (20->10) -
         // [10,19] oralig'i +1'ga suriladi; yuqoriga ko'chirilsa (5->15) -
         // [6,15] oralig'i -1'ga suriladi.
-        [$from, $to, $step] = $newNum < $oldNum
-            ? [$newNum, $oldNum - 1, 1]
-            : [$oldNum + 1, $newNum, -1];
+        [$from, $to, $step] = $newAktNumber < $oldAktNumber
+            ? [$newAktNumber, $oldAktNumber - 1, 1]
+            : [$oldAktNumber + 1, $newAktNumber, -1];
 
         $affected = WarehouseModel::query()
-            ->whereBetween(DB::raw('akt_number::integer'), [$from, $to])
+            ->whereBetween('akt_number', [$from, $to])
             ->where('id', '!=', $warehouse->id)
             ->lockForUpdate()
             ->get(['id', 'akt_number']);
@@ -90,13 +79,12 @@ final readonly class UpdateWarehouseAktAction
         // qiymatga o'tkazamiz (id noyob bo'lgani uchun tmp_{id} hech qachon
         // boshqa qator bilan to'qnashmaydi).
         foreach ($affected as $row) {
-            $row->update(['akt_number' => "tmp_{$row->id}"]);
+            $row->update(['akt_number' => -$row->id]);
         }
 
         // 2-bosqich: yakuniy (surilgan) raqamlarni yozamiz.
         foreach ($affected as $row) {
-            $shifted = (string) ((int) $originalNumbers[$row->id] + $step);
-            $row->update(['akt_number' => $shifted]);
+            $row->update(['akt_number' => (int) $originalNumbers[$row->id] + $step]);
         }
     }
 }

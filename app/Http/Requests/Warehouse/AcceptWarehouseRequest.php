@@ -22,7 +22,7 @@ class AcceptWarehouseRequest extends FormRequest
         $itemsCount  = $information?->items()->count() ?? 0;
 
         return [
-            'akt_number'  => ['required', 'string', 'max:255'],
+            'akt_number'  => ['required', 'integer', 'min:1'],
             'akt_date'    => ['required', 'date', 'before_or_equal:today'],
             'location_id' => ['required', 'integer', Rule::exists('locations', 'id')],
             'description' => ['nullable', 'string'],

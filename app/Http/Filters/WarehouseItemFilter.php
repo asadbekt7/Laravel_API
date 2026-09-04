@@ -103,6 +103,6 @@ class WarehouseItemFilter extends QueryFilter
 
     public function akt_number(Builder $q, string $value): void
     {
-        $q->whereHas('warehouse', fn (Builder $wq) => $wq->where('akt_number', 'ilike', "%{$value}%"));
+        $q->whereHas('warehouse', fn (Builder $wq) => $wq->whereRaw('akt_number::text ILIKE ?', ["%{$value}%"]));
     }
 }

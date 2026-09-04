@@ -21,7 +21,7 @@ class WarehouseUpdateRequest extends FormRequest
         $warehouse = $this->route('warehouse');
 
         return [
-            'akt_number' => ['required', 'string', 'max:255'],
+            'akt_number' => ['required', 'integer', 'min:1'],
             'akt_date'   => ['required', 'date', 'before_or_equal:today'],
         ];
     }
