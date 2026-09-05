@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\WarehouseController;
 use App\Http\Controllers\Api\WarehouseItemsController;
 use App\Http\Controllers\Api\TransferController;
 use App\Http\Controllers\Api\WarehouseBatchController;
+use App\Http\Controllers\Api\TmzController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -192,5 +193,11 @@ Route::post('warehouse-batches/{batch}/reject', [WarehouseBatchController::class
 Route::get('warehouse-batches/{batch}/pdf', [WarehouseBatchController::class, 'pdf'])
     ->middleware('throttle:20,1')
     ->name('warehouse-batches.pdf');
-
+//TMZ
+Route::prefix('tmz')->group(function () {
+    Route::get('', [TmzController::class, 'index']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:tmz.view');
+    Route::post('', [TmzController::class, 'store']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:tmz.create');
+    Route::get('{tmz}', [TmzController::class, 'show']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:tmz.view');
+    Route::match(['put', 'patch'], '{tmz}', [TmzController::class, 'update']); //todo ishlar tugagach ushbu permissionlar ochib qo'yiladi; ->middleware('perm:tmz.update');
+});
 

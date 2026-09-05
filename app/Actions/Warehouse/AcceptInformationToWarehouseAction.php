@@ -49,11 +49,20 @@ final readonly class AcceptInformationToWarehouseAction
                 'type_id'             => $item->typeId,
                 'category_id'         => $item->categoryId,
                 'model_id'            => $item->modelId,
+
+                // YANGI:
+                'asset_type'              => $item->assetType,
+                'responsible_person_id'   => $item->responsiblePersonId,
+                'responsible_person_name' => $item->responsiblePersonName,
+                'tmz_id'                  => $item->tmzId,
             ]);
         }
 
         $information->transitionTo(InformationStatus::Accepted);
 
-        return $warehouse->load('items.informationItem.unit', 'location', 'assignee', 'information');
+        // YANGI: 'items.tmz' qo'shildi — shunda accept() javobida ham
+        // TMZ turidagi itemlarning tmz ma'lumoti (nomi) darhol ko'rinadi,
+        // qo'shimcha so'rov (N+1) bo'lmaydi.
+        return $warehouse->load('items.informationItem.unit', 'items.tmz', 'location', 'assignee', 'information');
     }
 }

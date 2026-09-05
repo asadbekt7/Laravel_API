@@ -34,6 +34,9 @@ final readonly class UpdateWarehouseAktAction
             'items.type',
             'items.category',
             'items.model',
+            // YANGI: 'items.tmz' qo'shildi — javobda TMZ turidagi itemlar uchun
+            // ham to'liq ma'lumot chiqishi uchun, boshqa relatsiyalar bilan bir xil tartibda.
+            'items.tmz',
             'location',
             'assignee',
             'information',

@@ -67,6 +67,9 @@ final class WarehouseService
             'items.type',
             'items.category',
             'items.model',
+            // YANGI: 'items.tmz' qo'shildi — GET /api/receiving/{warehouse} javobida
+            // TMZ turidagi itemlar uchun ham to'liq ma'lumot (N+1'siz) chiqishi uchun.
+            'items.tmz',
             'location',
             'assignee',
             'information',

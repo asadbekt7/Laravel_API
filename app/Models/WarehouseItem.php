@@ -15,9 +15,13 @@ class WarehouseItem extends Model
         'warehouse_id',
         'information_item_id',
         'quantity',
+        'asset_type',
+        'responsible_person_id',
+        'responsible_person_name',
         'type_id',
         'category_id',
         'model_id',
+        'tmz_id',
     ];
 
     protected function casts(): array
@@ -37,6 +41,7 @@ class WarehouseItem extends Model
         return $this->belongsTo(InformationItem::class, 'information_item_id');
     }
 
+    // Faqat asset_type = 'asosiy' bo'lganda to'ldiriladi.
     public function type(): BelongsTo
     {
         return $this->belongsTo(TypeModel::class, 'type_id');
@@ -50,5 +55,11 @@ class WarehouseItem extends Model
     public function model(): BelongsTo
     {
         return $this->belongsTo(GoodModel::class, 'model_id');
+    }
+
+    // Faqat asset_type = 'tmz' bo'lganda to'ldiriladi.
+    public function tmz(): BelongsTo
+    {
+        return $this->belongsTo(Tmz::class, 'tmz_id');
     }
 }

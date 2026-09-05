@@ -18,6 +18,9 @@ final class WarehouseItemService
             'category',
             'model',
             'warehouse.location',
+            // YANGI: 'tmz' relatsiyasi qo'shildi — shunda WarehouseItemResource
+            // 'tmz' maydonini N+1 so'rovsiz to'liq obyekt sifatida chiqara oladi.
+            'tmz',
         ]);
 
         $filter->apply($query);

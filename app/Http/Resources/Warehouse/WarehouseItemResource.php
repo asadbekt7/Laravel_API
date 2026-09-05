@@ -23,6 +23,18 @@ class WarehouseItemResource extends JsonResource
 
             'created_at'       => $this->created_at?->toDateTimeString(),
 
+            // YANGI:
+            'asset_type'              => $this->asset_type,
+            'responsible_person_id'   => $this->responsible_person_id,
+            'responsible_person_name' => $this->responsible_person_name,
+
+            // Faqat asset_type = 'tmz' bo'lganda mazmunli, aks holda null bo'ladi.
+            // 'tmz' relatsiyasi eager-load qilingan joyda (masalan
+            // AcceptInformationToWarehouseAction, WarehouseItemService) to'liq
+            // obyekt sifatida chiqadi, aks holda faqat tmz_id ko'rinadi.
+            'tmz_id' => $this->tmz_id,
+            'tmz'    => $this->whenLoaded('tmz'),
+
             // YANGI: faqat "warehouse" relatsiyasi eager-load qilingan joyda (umumiy
             // ro'yxat, WarehouseItemsController) chiqadi. Bitta akt ichidagi
             // ro'yxatda (WarehouseController::show) bu maydon ko'rinmaydi,
