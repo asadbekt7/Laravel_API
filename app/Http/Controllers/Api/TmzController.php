@@ -19,7 +19,7 @@ class TmzController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $perPage = (int) $request->integer('per_page', 15);
+        $perPage = min(max($request->integer('per_page', 15), 1), 100);
 
         $items = Tmz::query()
             ->latest('id')
@@ -37,10 +37,6 @@ class TmzController extends Controller
         ]);
     }
 
-    /**
-     * GET /api/tmz/{tmz}
-     * Route Model Binding — topilmasa Laravel avtomatik 404 qaytaradi.
-     */
     public function show(Tmz $tmz): JsonResponse
     {
         return response()->json([
@@ -49,9 +45,6 @@ class TmzController extends Controller
         ]);
     }
 
-    /**
-     * POST /api/tmz
-     */
     public function store(StoreTmzRequest $request): JsonResponse
     {
         $tmz = Tmz::query()->create($request->validated());
@@ -63,9 +56,6 @@ class TmzController extends Controller
         ], 201);
     }
 
-    /**
-     * PUT/PATCH /api/tmz/{tmz}
-     */
     public function update(UpdateTmzRequest $request, Tmz $tmz): JsonResponse
     {
         $tmz->update($request->validated());
@@ -73,7 +63,7 @@ class TmzController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Muvaffaqiyatli yangilandi.',
-            'data' => new TmzResource($tmz->refresh()),
+            'data' => new TmzResource($tmz),
         ]);
     }
 }
