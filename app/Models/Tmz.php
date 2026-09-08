@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Tmz extends Model
 {
+    protected $table = 'tmz';
     use HasFactory;
 
     protected $fillable = [
