@@ -31,6 +31,16 @@ class WarehouseItemFilter extends QueryFilter
     {
         $q->where('warehouse_id', $value);
     }
+    public function asset_type(Builder $q, mixed $value): void
+    {
+        $allowed = ['asosiy', 'tmz'];
+
+        if (! is_string($value) || ! in_array($value, $allowed, true)) {
+            return;
+        }
+
+        $q->where('asset_type', $value);
+    }
 
     public function type_id(Builder $q, mixed $value): void
     {
