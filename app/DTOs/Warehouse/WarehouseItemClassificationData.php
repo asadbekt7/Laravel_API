@@ -14,7 +14,7 @@ final readonly class WarehouseItemClassificationData
         public ?int $categoryId,
         public ?int $modelId,
         public string $assetType,
-        public string $responsiblePersonId,
+        public ?string $responsiblePersonId,
         public ?string $responsiblePersonName,
         // asset_type = 'asosiy' bo'lganda tmzId umuman kelmaydi.
         public ?int $tmzId,
@@ -29,11 +29,19 @@ final readonly class WarehouseItemClassificationData
             categoryId: isset($data['category_id']) ? (int) $data['category_id'] : null,
             modelId: isset($data['model_id']) ? (int) $data['model_id'] : null,
             assetType: (string) $data['asset_type'],
-            responsiblePersonId: (string) $data['responsible_person_id'],
-            responsiblePersonName: isset($data['responsible_person_name'])
-                ? (string) $data['responsible_person_name']
-                : null,
+            responsiblePersonId: self::nullableString($data['responsible_person_id'] ?? null),
+            responsiblePersonName: self::nullableString($data['responsible_person_name'] ?? null),
             tmzId: isset($data['tmz_id']) ? (int) $data['tmz_id'] : null,
         );
+    }
+    private static function nullableString(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
     }
 }

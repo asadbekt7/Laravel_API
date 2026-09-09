@@ -45,7 +45,7 @@ class AcceptWarehouseRequest extends FormRequest
             // tegishli (StaffApiService::searchStaff natijasidagi 'id'), shuning
             // uchun exists:users emas, oddiy string sifatida tekshiriladi.
             // Har ikki tur (asosiy/tmz) uchun ham majburiy.
-            'items.*.responsible_person_id'   => ['required', 'string', 'max:255'],
+            'items.*.responsible_person_id'   => ['nullable', 'string', 'max:255'],
             'items.*.responsible_person_name' => ['nullable', 'string', 'max:255'],
         ];
 
