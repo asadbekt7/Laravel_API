@@ -18,6 +18,7 @@ class InformationItemResource extends JsonResource
             'quantity'     => (float) $this->quantity,
             'item_price'   => (float) $this->item_price,
             'total_price'  => (float) $this->total_price,
+            'information'  => new InformationResource($this->whenLoaded('information')),
         ];
     }
 }
