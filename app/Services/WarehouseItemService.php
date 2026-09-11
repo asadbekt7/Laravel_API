@@ -13,10 +13,10 @@ final class WarehouseItemService
     public function paginate(WarehouseItemFilter $filter, int $perPage): LengthAwarePaginator
     {
         $query = WarehouseItem::query()->with([
-            'informationItem.' => function ($query) {
-                $query->with ([
+            'informationItem' => function ($query) {
+                $query->with([
                     'unit',
-                    'information:id, description',
+                    'information:id,description',
                 ]);
             },
             'type',
