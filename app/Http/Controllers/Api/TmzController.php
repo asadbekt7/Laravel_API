@@ -22,7 +22,7 @@ class TmzController extends Controller
         $perPage = min(max($request->integer('per_page', 15), 1), 100);
 
         $items = Tmz::query()
-            ->latest('id')
+            ->orderBy('id')
             ->paginate($perPage);
 
         return response()->json([
