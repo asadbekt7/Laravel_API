@@ -16,8 +16,8 @@ class InformationResource extends JsonResource
             'id'           => $this->id,
             'name'         => $this->name,
             'description'  => $this->description,
-            'status'       => $this->status->value,
-            'status_label' => $this->status->label(),
+            'status'       => $this->status?->value,
+            'status_label' => $this->status?->label(),
             'reject_reason' => $this->reject_reason,
 
             'contract' => [

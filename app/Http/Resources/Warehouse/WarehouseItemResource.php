@@ -41,6 +41,7 @@ class WarehouseItemResource extends JsonResource
                     'akt_number' => $warehouse->akt_number,
                     'akt_date'   => $warehouse->akt_date?->format('Y-m-d'),
                     'location'   => $warehouse->location?->name,
+                    'description' => $warehouse?->description,
                 ] : null;
             }),
         ];
